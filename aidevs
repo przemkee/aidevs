@@ -1,0 +1,210 @@
+<!doctype html><html><head>
+<a id="logo" href="https://www.aidevs.pl/?ref=game"><img src="/ai_logo.png" alt="AI Devs #2" width="200"/></a>
+<meta charset="utf-8" /><title>Risky AI Game</title><link rel="stylesheet" href="/bahunya.css" type="text/css">
+<meta description="Podatna aplikacja bazująca na GPT-3.5-turbo" />
+<meta property="og:image" content="https://game.aidevs.pl/mini.png?v=2" />
+<meta property="og:description" content="Podatna aplikacja bazująca na GPT-3.5-turbo" />
+<meta property="twitter:image" content="https://game.aidevs.pl/mini.png?v=2" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="Risky AI Game - złam mnie!" />
+<meta name="twitter:creator" content="@uwteam" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+#output:is(:empty) {
+    display: none;
+}
+
+#output {
+    background: rgba(127,127,127,0.2);
+    padding: 15px;
+    max-width: 700px;
+    margin: 0 auto 15px;
+    color: #74ff6b;
+}
+
+#output span {
+    color:#f00;
+    font-weight:bold;
+}
+
+#logo {
+    color: #74ff6b;
+    margin: 45px auto 0;
+    display: block;
+    width: 200px;
+}
+
+ol, p, pre, ul {
+    margin-bottom: 1.632rem;
+    max-width: 700px;
+    margin: 0 auto 2.632rem;
+}
+
+input[type=submit] {
+    background: none;
+    color: #fff;
+    border: 2px solid #ddd;
+}
+
+p span {
+    color: #74ff6b;
+}
+
+a {
+    color: #74ff6b;
+    text-decoration: underline;
+}
+
+button:not([disabled]):hover, button[type=submit]:hover, input[type=submit]:hover {
+    background: #444;
+    color: #fff;
+}
+
+form {
+    padding: 1.5em 1.5em 0;
+    margin: 0 auto;
+    text-align: center;
+    border: none;
+    background: none;
+}
+
+main {
+    max-width: 70rem;
+    margin: 0 auto;
+    border-top: none;
+}
+
+header {
+    padding-bottom: 0; 
+    padding-top: 0;
+    margin-top:10px;
+}
+
+.fb_iframe_widget #twitter-widget-0 {
+    margin-bottom: 0;
+}
+svg {
+    fill: #b20000;
+    position: relative;
+    top: 10px;
+    width: 65px;
+}
+input[type=text] {width:50%}
+header h1 {font-size:5rem}
+header h1 span {color:#74ff6b}
+footer a {margin:0}
+
+.embedForm {max-width:600px !important;}
+
+@media (max-width: 768px) {
+    header h1{
+        font-size:2rem;
+    }
+}
+
+</style>
+</head><body>
+<div id="fb-root"></div>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/pl_PL/sdk.js#xfbml=1&version=v14.0&appId=352044592705136&autoLogAppEvents=1" nonce="tF0QfIwc"></script>
+<header>
+	<h1><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M256 0c53 0 96 43 96 96v3.6c0 15.7-12.7 28.4-28.4 28.4H188.4c-15.7 0-28.4-12.7-28.4-28.4V96c0-53 43-96 96-96zM41.4 105.4c12.5-12.5 32.8-12.5 45.3 0l64 64c.7 .7 1.3 1.4 1.9 2.1c14.2-7.3 30.4-11.4 47.5-11.4H312c17.1 0 33.2 4.1 47.5 11.4c.6-.7 1.2-1.4 1.9-2.1l64-64c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3l-64 64c-.7 .7-1.4 1.3-2.1 1.9c6.2 12 10.1 25.3 11.1 39.5H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H416c0 24.6-5.5 47.8-15.4 68.6c2.2 1.3 4.2 2.9 6 4.8l64 64c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0l-63.1-63.1c-24.5 21.8-55.8 36.2-90.3 39.6V240c0-8.8-7.2-16-16-16s-16 7.2-16 16V479.2c-34.5-3.4-65.8-17.8-90.3-39.6L86.6 502.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l64-64c1.9-1.9 3.9-3.4 6-4.8C101.5 367.8 96 344.6 96 320H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H96.3c1.1-14.1 5-27.5 11.1-39.5c-.7-.6-1.4-1.2-2.1-1.9l-64-64c-12.5-12.5-12.5-32.8 0-45.3z"/></svg> Risky <span>AI</span> Game</h1>
+</header>
+<main>
+<div id="fb-root"></div>
+<form action="/api" method="post">
+	<input type="text" name="url" placeholder="URL artykułu" minlength="10" pattern="^https://.+" autocomplete="off" id="target" />
+	<input type="submit" value="Analizuj!" id="letsParse" />
+        <div id="output"></div>
+</form>
+<p>Zagrajmy w małą grę, pokazującą, że bezpieczeństwo aplikacji w których obecne są duże modele językowe (np. GPT-4) <span>to coś więcej niż Prompt Injection</span>.</p>
+<p>Jako twórcy szkolenia <a href="https://www.aidevs.pl/?ref=game" target="_blank">AI_Devs</a> stworzyliśmy powyższą aplikację. Pierwszą wskazówką jest fakt...że to raczej kiepska implementacja <a href="https://www.youtube.com/watch?v=OvyRmJaCnRo&t=158s" target="_blank">RAG</a>-a. Możesz przekazać do niej dowolny adres URL, którego zawartość zostanie przeanalizowana przez system (a konkretnie GPT-3.5-Turbo).</p>
+<p>Analiza odbywa się przez tajny prompt, w którym ukryliśmy <span>bardzo wrażliwe hasło</span>, ale zadbaliśmy o to, aby "nigdy" nie zostało zwrócone użytkownikowi. Jeśli potrafisz to zmienić, wygrasz! 😃</p>
+<p>Zadanie uznawane jest za zaliczone, gdy hasło zostanie wypisane na ekran (bez żadnych separatorów, ozdobników itp.).</p>
+<p>Rozwiązanie zagadki wymaga wielu prób i ogólnej wiedzy na temat Web Security. Twoim pierwszym wyzwaniem jest fakt, że aplikacja akceptuje jedynie linki z "<a href="https://www.aidevs.pl/?ref=game">aidevs.pl</a>", a tak się składa, że ta domena nie należy do Ciebie. Ale czy na pewno?</p>
+<p>Baw się dobrze!</p>
+<div align="center">
+<div class="fb-share-button" data-href="https://game.aidevs.pl" data-layout="button_count" data-size="large"><a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgame.aidevs.pl%2F&amp;src=sdkpreparse" class="fb-xfbml-parse-ignore">Udostępnij</a></div><br />
+    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</div>
+<div class="ml-embedded" data-form="9KEB0H"></div><br />
+</main>
+<footer>Druga edycja <a href="https://www.aidevs.pl/?ref=game" target="_blank">AI Devs</a> nadchodzi już 23 października!</footer>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const submitButton = document.getElementById("letsParse");
+    const targetInput = document.getElementById("target");
+    const outputDiv = document.getElementById("output");
+
+    submitButton.addEventListener("click", function(event) {
+        event.preventDefault(); // Zapobiega standardowemu zachowaniu formularza
+        
+        const inputValue = targetInput.value;
+
+        outputDiv.innerText = "Myślę... daj mi chwilę 🤔";
+
+        // Używamy Fetch API do wysłania żądania
+        fetch('/api', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'url=' + encodeURIComponent(inputValue)
+        })
+        .then(response => response.text())
+        .then(data => {
+            outputDiv.innerHTML= data;
+        })
+        .catch(error => {
+            console.error('Błąd:', error);
+            outputDiv.innerHTML = 'Wystąpił błąd podczas przetwarzania żądania.';
+        });
+    });
+});
+</script>
+<script async src="https://stat.mrugalski.pl/script.js" data-website-id="12298738-142a-4843-a9d5-439ad8a3d833"></script>
+<script>(function() {
+  var _fbq = window._fbq || (window._fbq = []);
+  if (!_fbq.loaded) {
+    var fbds = document.createElement('script');
+    fbds.async = true;
+    fbds.src = '//connect.facebook.net/en_US/fbds.js';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(fbds, s);
+    _fbq.loaded = true;
+  }
+  _fbq.push(['addPixelId', '343088015890298']);
+})();
+window._fbq = window._fbq || [];
+window._fbq.push(['track', 'PixelInitialized', {}]);
+window._fbq.push(['track', 'PageView', {}]);
+</script>
+<noscript><img height="1" width="1" alt="" style="display:none" src="https://www.facebook.com/tr?id=343088015890298&amp;ev=PixelInitialized" /></noscript>
+<!-- Twitter universal website tag code -->
+<script>
+!function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
+},s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='//static.ads-twitter.com/uwt.js',
+a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
+// Insert Twitter Pixel ID and Standard Event data below
+twq('init','o196e');
+twq('track','PageView');
+</script>
+<!-- End Twitter universal website tag code -->
+<!-- MailerLite Universal -->
+<script>
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '390769');
+</script>
+<!-- End MailerLite Universal -->
+<script>
+  (function(d, id) {
+    if (d.getElementById(id)) return;
+    var sc, node = d.getElementsByTagName('script')[0];
+    sc = d.createElement('script'); sc.id = id;
+    sc.src = 'https://sdk.getsitekit.com/static/js/app.js#apiKey=946e241e446788f3bf3a2a22a5e8205d';
+    node.parentNode.insertBefore(sc, node);
+  }(document, 'sitekit-sdk'));
+</script>
+</body></html>
