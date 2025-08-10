@@ -262,7 +262,12 @@ function showGameOverScreen() {
   const scoreTable = document.getElementById('scoreTable');
 
   finalScore.textContent = `Gratulacje! Twój wynik: ${score}`;
-  const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+  let scores;
+  try {
+    scores = JSON.parse(localStorage.getItem('scores')) || [];
+  } catch (e) {
+    scores = [];
+  }
   scoreTable.textContent = scores
     .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
     .join('\n');
@@ -274,7 +279,12 @@ saveScoreBtn.addEventListener('click', () => {
   const nicknameInput = document.getElementById('nickname');
   const scoreTable = document.getElementById('scoreTable');
   const nick = nicknameInput.value.trim() || 'Anon';
-  const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+  let scores;
+  try {
+    scores = JSON.parse(localStorage.getItem('scores')) || [];
+  } catch (e) {
+    scores = [];
+  }
   scores.push({ name: nick, score });
   scores.sort((a, b) => b.score - a.score);
   localStorage.setItem('scores', JSON.stringify(scores));
