@@ -44,6 +44,7 @@ let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
 let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
 let stars;
+let longJumpReady;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -82,6 +83,7 @@ function initGame(diff) {
   nextPlatformId = num;
   comboMultiplier = 1;
   comboHits = 0;
+  longJumpReady = false;
   stars = [];
   keys = {};
   gameOver = false;
@@ -104,7 +106,11 @@ function update() {
   else player.vx = 0;
 
   if (keys['Space'] && player.onGround) {
-    const heightBoost = comboMultiplier >= 4 ? comboMultiplier / 2 : 1;
+    let heightBoost = 1;
+    if (longJumpReady && comboMultiplier >= 4) {
+      heightBoost = comboMultiplier / 2;
+      longJumpReady = false;
+    }
     player.vy = -20 * heightBoost;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
@@ -139,6 +145,7 @@ function update() {
           // first long jump starts the combo at x2
           comboMultiplier = 2;
           comboHits = 0;
+          longJumpReady = false;
         } else {
           // count consecutive long jumps after combo start
           comboHits++;
@@ -151,11 +158,15 @@ function update() {
         if (comboHits >= comboMultiplier) {
           comboMultiplier += 2;
           comboHits = 0;
+          if (comboMultiplier >= 4) {
+            longJumpReady = true;
+          }
         }
       } else {
         score += jumped;
         comboMultiplier = 1;
         comboHits = 0;
+        longJumpReady = false;
       }
       player.lastPlatformId = plat.id;
     }
