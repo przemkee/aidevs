@@ -230,6 +230,11 @@ saveScoreBtn.addEventListener('click', () => {
   scoreTable.textContent = scores
     .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
     .join('\n');
+  const blob = new Blob([scoreTable.textContent], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'scores.txt';
+  a.click();
   saveScoreBtn.disabled = true;
 });
 
