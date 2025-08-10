@@ -30,9 +30,6 @@ startBtn.addEventListener('click', () => {
   canvas.style.display = 'block';
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  if (canvas.requestFullscreen) {
-    canvas.requestFullscreen();
-  }
   const diff = difficulties[difficultySelect.value];
   initGame(diff);
   requestAnimationFrame(loop);
@@ -45,6 +42,8 @@ let speed = 2;
 let player, platforms, keys, gameOver, gameStarted, score;
 let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
+let platformSpacing, nextPlatformId, comboMultiplier;
+let stars;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -58,24 +57,31 @@ function initGame(diff) {
     height: 60,
     vx: 0,
     vy: 0,
-    onGround: true
+    onGround: true,
+    lastPlatformId: 0
   };
   platforms = [];
+  const num = Math.ceil(canvas.height / 100);
+  platformSpacing = (canvas.height - 20) / (num - 1);
   platforms.push({
     x: gameAreaX,
     y: canvas.height - 20,
     width: gameAreaWidth,
-    height: 10
+    height: 10,
+    id: 0
   });
-  const num = 6;
   for (let i = 1; i < num; i++) {
     platforms.push({
       x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
-      y: canvas.height - 20 - i * 100,
+      y: canvas.height - 20 - i * platformSpacing,
       width: platformWidth,
-      height: 10
+      height: 10,
+      id: i
     });
   }
+  nextPlatformId = num;
+  comboMultiplier = 1;
+  stars = [];
   keys = {};
   gameOver = false;
   gameStarted = false;
@@ -92,12 +98,12 @@ document.addEventListener('keyup', e => {
 });
 
 function update() {
-  if (keys['ArrowLeft']) player.vx = -3;
-  else if (keys['ArrowRight']) player.vx = 3;
+  if (keys['ArrowLeft']) player.vx = -4;
+  else if (keys['ArrowRight']) player.vx = 4;
   else player.vx = 0;
 
   if (keys['Space'] && player.onGround) {
-    player.vy = -10;
+    player.vy = -20;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
   }
@@ -124,24 +130,58 @@ function update() {
       player.y = plat.y - player.height;
       player.vy = 0;
       player.onGround = true;
+      const jumped = plat.id - player.lastPlatformId;
+      if (jumped >= 3) {
+        comboMultiplier = comboMultiplier > 1 ? comboMultiplier * 2 : 2;
+        score += jumped * comboMultiplier;
+      } else {
+        score += jumped;
+        comboMultiplier = 1;
+      }
+      player.lastPlatformId = plat.id;
     }
-    if (gameStarted) {
-      plat.y += speed;
+  }
+
+  if (gameStarted) {
+    let scroll = speed;
+    if (player.y < canvas.height / 2) {
+      const diffY = canvas.height / 2 - player.y;
+      player.y = canvas.height / 2;
+      scroll += diffY;
     }
+    for (let plat of platforms) {
+      plat.y += scroll;
+    }
+    for (let star of stars) {
+      star.y += scroll;
+    }
+  }
+
+  if (comboMultiplier > 1) {
+    const cx = player.x + player.width / 2;
+    const cy = player.y + player.height;
+    const last = stars[stars.length - 1];
+    if (!last || Math.hypot(cx - last.x, cy - last.y) > 20) {
+      stars.push({ x: cx, y: cy, life: 60 });
+    }
+  }
+  for (let i = stars.length - 1; i >= 0; i--) {
+    stars[i].life--;
+    if (stars[i].life <= 0) stars.splice(i, 1);
   }
 
   // spawn new platforms
   if (gameStarted) {
     while (platforms.length && platforms[0].y > canvas.height) {
       platforms.shift();
-      const lastY = platforms[platforms.length - 1].y;
+      const last = platforms[platforms.length - 1];
       platforms.push({
         x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
-        y: lastY - 100,
+        y: last.y - platformSpacing,
         width: platformWidth,
-        height: 10
+        height: 10,
+        id: nextPlatformId++
       });
-      score++;
     }
   }
 
@@ -152,13 +192,31 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#88f';
+  if (comboMultiplier > 1) {
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    grad.addColorStop(0, '#ff0000');
+    grad.addColorStop(0.17, '#ff7f00');
+    grad.addColorStop(0.33, '#ffff00');
+    grad.addColorStop(0.5, '#00ff00');
+    grad.addColorStop(0.67, '#0000ff');
+    grad.addColorStop(0.83, '#4b0082');
+    grad.addColorStop(1, '#8b00ff');
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = '#88f';
+  }
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = '#555';
   for (let plat of platforms) {
     ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
   }
+
+  for (let star of stars) {
+    ctx.globalAlpha = star.life / 60;
+    drawStar(star.x, star.y, 5);
+  }
+  ctx.globalAlpha = 1;
 
   // draw game area border
   ctx.strokeStyle = '#000';
@@ -180,26 +238,61 @@ function draw() {
   ctx.font = '24px Arial';
   ctx.textAlign = 'right';
   ctx.fillText(`Score: ${score}`, canvas.width - 20, 30);
+  if (comboMultiplier > 1) {
+    ctx.fillText(`Combo x${comboMultiplier}!`, canvas.width - 20, 60);
+  }
+}
+
+function drawStar(x, y, r) {
+  ctx.fillStyle = '#ff0';
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const outer = (18 + i * 72) * Math.PI / 180;
+    const inner = (54 + i * 72) * Math.PI / 180;
+    ctx.lineTo(x + Math.cos(outer) * r, y - Math.sin(outer) * r);
+    ctx.lineTo(x + Math.cos(inner) * r * 0.5, y - Math.sin(inner) * r * 0.5);
+  }
+  ctx.closePath();
+  ctx.fill();
 }
 
 function showGameOverScreen() {
   const gameOverDiv = document.getElementById('gameOver');
   const finalScore = document.getElementById('finalScore');
   const scoreTable = document.getElementById('scoreTable');
-  const downloadLink = document.getElementById('downloadScores');
 
   finalScore.textContent = `Gratulacje! Twój wynik: ${score}`;
   const scores = JSON.parse(localStorage.getItem('scores') || '[]');
-  scores.push(score);
-  scores.sort((a, b) => b - a);
-  localStorage.setItem('scores', JSON.stringify(scores));
   scoreTable.textContent = scores
-    .map((s, i) => `${i + 1}. ${s}`)
+    .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
     .join('\n');
-  const blob = new Blob([scoreTable.textContent], { type: 'text/plain' });
-  downloadLink.href = URL.createObjectURL(blob);
   gameOverDiv.style.display = 'flex';
 }
+
+const saveScoreBtn = document.getElementById('saveScoreBtn');
+saveScoreBtn.addEventListener('click', () => {
+  const nicknameInput = document.getElementById('nickname');
+  const scoreTable = document.getElementById('scoreTable');
+  const nick = nicknameInput.value.trim() || 'Anon';
+  const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+  scores.push({ name: nick, score });
+  scores.sort((a, b) => b.score - a.score);
+  localStorage.setItem('scores', JSON.stringify(scores));
+  scoreTable.textContent = scores
+    .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
+    .join('\n');
+  saveScoreBtn.disabled = true;
+});
+
+const newGameBtn = document.getElementById('newGameBtn');
+newGameBtn.addEventListener('click', () => {
+  const gameOverDiv = document.getElementById('gameOver');
+  gameOverDiv.style.display = 'none';
+  menu.style.display = 'block';
+  canvas.style.display = 'none';
+  document.getElementById('nickname').value = '';
+  saveScoreBtn.disabled = false;
+});
 
 function loop() {
   if (gameOver) {
