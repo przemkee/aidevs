@@ -42,7 +42,7 @@ let speed = 2;
 let player, platforms, keys, gameOver, gameStarted, score;
 let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
-let platformSpacing, nextPlatformId, comboMultiplier;
+let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
 let stars;
 
 function initGame(diff) {
@@ -81,6 +81,7 @@ function initGame(diff) {
   }
   nextPlatformId = num;
   comboMultiplier = 1;
+  comboHits = 0;
   stars = [];
   keys = {};
   gameOver = false;
@@ -132,11 +133,16 @@ function update() {
       player.onGround = true;
       const jumped = plat.id - player.lastPlatformId;
       if (jumped >= 3) {
-        comboMultiplier = comboMultiplier > 1 ? comboMultiplier * 2 : 2;
+        comboHits++;
+        if (comboHits >= comboMultiplier) {
+          comboMultiplier *= 2;
+          comboHits = 0;
+        }
         score += jumped * comboMultiplier;
       } else {
         score += jumped;
         comboMultiplier = 1;
+        comboHits = 0;
       }
       player.lastPlatformId = plat.id;
     }
