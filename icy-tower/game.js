@@ -254,6 +254,7 @@ function drawStar(x, y, r) {
   }
   ctx.closePath();
   ctx.fill();
+}
 
 function showGameOverScreen() {
   const gameOverDiv = document.getElementById('gameOver');
