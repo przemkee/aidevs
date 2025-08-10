@@ -54,7 +54,37 @@ body {
   font-size: 24px;
 }
 
-#downloadScores {
-  margin-top: 20px;
+#nickname {
+  margin-top: 15px;
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+#saveScoreBtn,
+#newGameBtn {
   color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+#saveScoreBtn {
+  background: #4caf50;
+}
+
+#saveScoreBtn:hover {
+  background: #45a049;
+}
+
+#newGameBtn {
+  background: #2196f3;
+}
+
+#newGameBtn:hover {
+  background: #1976d2;
 }
