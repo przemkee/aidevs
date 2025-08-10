@@ -43,6 +43,7 @@ let platformWidth = 90;
 let speed = 2;
 
 let player, platforms, keys, gameOver, gameStarted, score;
+let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
 
 function initGame(diff) {
@@ -79,6 +80,7 @@ function initGame(diff) {
   gameOver = false;
   gameStarted = false;
   score = 0;
+  gameOverDisplayed = false;
 }
 
 document.addEventListener('keydown', e => {
@@ -132,9 +134,10 @@ function update() {
   if (gameStarted) {
     while (platforms.length && platforms[0].y > canvas.height) {
       platforms.shift();
+      const lastY = platforms[platforms.length - 1].y;
       platforms.push({
         x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
-        y: -10,
+        y: lastY - 100,
         width: platformWidth,
         height: 10
       });
@@ -157,6 +160,11 @@ function draw() {
     ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
   }
 
+  // draw game area border
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(gameAreaX, 0, gameAreaWidth, canvas.height);
+
   // draw player body
   ctx.fillStyle = '#0a0';
   ctx.fillRect(player.x, player.y + 30, player.width, player.height - 30);
@@ -174,10 +182,32 @@ function draw() {
   ctx.fillText(`Score: ${score}`, canvas.width - 20, 30);
 }
 
+function showGameOverScreen() {
+  const gameOverDiv = document.getElementById('gameOver');
+  const finalScore = document.getElementById('finalScore');
+  const scoreTable = document.getElementById('scoreTable');
+  const downloadLink = document.getElementById('downloadScores');
+
+  finalScore.textContent = `Gratulacje! Twój wynik: ${score}`;
+  const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+  scores.push(score);
+  scores.sort((a, b) => b - a);
+  localStorage.setItem('scores', JSON.stringify(scores));
+  scoreTable.textContent = scores
+    .map((s, i) => `${i + 1}. ${s}`)
+    .join('\n');
+  const blob = new Blob([scoreTable.textContent], { type: 'text/plain' });
+  downloadLink.href = URL.createObjectURL(blob);
+  gameOverDiv.style.display = 'flex';
+}
+
 function loop() {
   if (gameOver) {
-    alert('Koniec gry!');
-    document.location.reload();
+    if (!gameOverDisplayed) {
+      draw();
+      showGameOverScreen();
+      gameOverDisplayed = true;
+    }
     return;
   }
   update();
