@@ -28,6 +28,11 @@ faceInput.addEventListener('change', function() {
 startBtn.addEventListener('click', () => {
   menu.style.display = 'none';
   canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  if (canvas.requestFullscreen) {
+    canvas.requestFullscreen();
+  }
   const diff = difficulties[difficultySelect.value];
   initGame(diff);
   requestAnimationFrame(loop);
@@ -37,32 +42,39 @@ const gravity = 0.5;
 let platformWidth = 90;
 let speed = 2;
 
-let player, platforms, keys, gameOver;
+let player, platforms, keys, gameOver, gameStarted;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
   speed = diff.speed;
   player = {
     x: canvas.width / 2 - 20,
-    y: canvas.height - 60,
+    y: canvas.height - 80,
     width: 40,
     height: 60,
     vx: 0,
     vy: 0,
-    onGround: false
+    onGround: true
   };
   platforms = [];
+  platforms.push({
+    x: 0,
+    y: canvas.height - 20,
+    width: canvas.width,
+    height: 10
+  });
   const num = 6;
-  for (let i = 0; i < num; i++) {
+  for (let i = 1; i < num; i++) {
     platforms.push({
       x: Math.random() * (canvas.width - platformWidth),
-      y: canvas.height - i * 100,
+      y: canvas.height - 20 - i * 100,
       width: platformWidth,
       height: 10
     });
   }
   keys = {};
   gameOver = false;
+  gameStarted = false;
 }
 
 document.addEventListener('keydown', e => {
@@ -81,6 +93,7 @@ function update() {
   if (keys['Space'] && player.onGround) {
     player.vy = -10;
     player.onGround = false;
+    if (!gameStarted) gameStarted = true;
   }
 
   player.vy += gravity;
@@ -104,18 +117,22 @@ function update() {
       player.vy = 0;
       player.onGround = true;
     }
-    plat.y += speed;
+    if (gameStarted) {
+      plat.y += speed;
+    }
   }
 
   // spawn new platforms
-  while (platforms.length && platforms[0].y > canvas.height) {
-    platforms.shift();
-    platforms.push({
-      x: Math.random() * (canvas.width - platformWidth),
-      y: -10,
-      width: platformWidth,
-      height: 10
-    });
+  if (gameStarted) {
+    while (platforms.length && platforms[0].y > canvas.height) {
+      platforms.shift();
+      platforms.push({
+        x: Math.random() * (canvas.width - platformWidth),
+        y: -10,
+        width: platformWidth,
+        height: 10
+      });
+    }
   }
 
   if (player.y > canvas.height) {

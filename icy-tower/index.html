@@ -8,7 +8,7 @@
 <body>
   <div id="menu">
     <h1>Icy Tower Clone</h1>
-    <label>Wgraj twarz (jpg): <input type="file" id="faceInput" accept="image/jpeg" /></label>
+    <label>Wgraj twarz (bmp): <input type="file" id="faceInput" accept="image/bmp,image/x-ms-bmp" /></label>
     <div>
       <label>Poziom trudności:
         <select id="difficulty">
@@ -20,7 +20,7 @@
     </div>
     <button id="startBtn">Start</button>
   </div>
-  <canvas id="game" width="400" height="600" style="display:none;"></canvas>
+  <canvas id="game" style="display:none;"></canvas>
   <script src="game.js"></script>
 </body>
 </html>
