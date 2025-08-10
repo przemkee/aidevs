@@ -141,11 +141,12 @@ function update() {
       const diffY = canvas.height / 2 - player.y;
       player.y = canvas.height / 2;
       for (let plat of platforms) {
-        plat.y += diffY;
+        plat.y += diffY + speed;
       }
-    }
-    for (let plat of platforms) {
-      plat.y += speed;
+    } else {
+      for (let plat of platforms) {
+        plat.y += speed;
+      }
     }
   }
 
