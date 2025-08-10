@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Icy Tower Clone</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="menu">
+    <h1>Icy Tower Clone</h1>
+    <label>Wgraj twarz (jpg): <input type="file" id="faceInput" accept="image/jpeg" /></label>
+    <div>
+      <label>Poziom trudności:
+        <select id="difficulty">
+          <option value="easy">Łatwa</option>
+          <option value="medium">Średnia</option>
+          <option value="hard">Trudna</option>
+        </select>
+      </label>
+    </div>
+    <button id="startBtn">Start</button>
+  </div>
+  <canvas id="game" width="400" height="600" style="display:none;"></canvas>
+  <script src="game.js"></script>
+</body>
+</html>
