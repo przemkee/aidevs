@@ -42,6 +42,7 @@ let speed = 2;
 let player, platforms, keys, gameOver, gameStarted, score;
 let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
+let platformSpacing, nextPlatformId, comboActive;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -55,24 +56,30 @@ function initGame(diff) {
     height: 60,
     vx: 0,
     vy: 0,
-    onGround: true
+    onGround: true,
+    lastPlatformId: 0
   };
   platforms = [];
+  const num = Math.ceil(canvas.height / 100);
+  platformSpacing = (canvas.height - 20) / (num - 1);
   platforms.push({
     x: gameAreaX,
     y: canvas.height - 20,
     width: gameAreaWidth,
-    height: 10
+    height: 10,
+    id: 0
   });
-  const num = 6;
   for (let i = 1; i < num; i++) {
     platforms.push({
       x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
-      y: canvas.height - 20 - i * 100,
+      y: canvas.height - 20 - i * platformSpacing,
       width: platformWidth,
-      height: 10
+      height: 10,
+      id: i
     });
   }
+  nextPlatformId = num;
+  comboActive = false;
   keys = {};
   gameOver = false;
   gameStarted = false;
@@ -121,6 +128,11 @@ function update() {
       player.y = plat.y - player.height;
       player.vy = 0;
       player.onGround = true;
+      const jumped = plat.id - player.lastPlatformId;
+      comboActive = jumped >= 3;
+      const multiplier = comboActive ? 2 : 1;
+      score += jumped * multiplier;
+      player.lastPlatformId = plat.id;
     }
   }
 
@@ -129,11 +141,12 @@ function update() {
       const diffY = canvas.height / 2 - player.y;
       player.y = canvas.height / 2;
       for (let plat of platforms) {
-        plat.y += diffY;
+        plat.y += diffY + speed;
       }
-    }
-    for (let plat of platforms) {
-      plat.y += speed;
+    } else {
+      for (let plat of platforms) {
+        plat.y += speed;
+      }
     }
   }
 
@@ -141,14 +154,14 @@ function update() {
   if (gameStarted) {
     while (platforms.length && platforms[0].y > canvas.height) {
       platforms.shift();
-      const lastY = platforms[platforms.length - 1].y;
+      const last = platforms[platforms.length - 1];
       platforms.push({
         x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
-        y: lastY - 100,
+        y: last.y - platformSpacing,
         width: platformWidth,
-        height: 10
+        height: 10,
+        id: nextPlatformId++
       });
-      score++;
     }
   }
 
@@ -187,6 +200,9 @@ function draw() {
   ctx.font = '24px Arial';
   ctx.textAlign = 'right';
   ctx.fillText(`Score: ${score}`, canvas.width - 20, 30);
+  if (comboActive) {
+    ctx.fillText('Combo x2!', canvas.width - 20, 60);
+  }
 }
 
 function showGameOverScreen() {
