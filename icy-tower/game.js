@@ -133,21 +133,13 @@ function update() {
       player.vy = 0;
       player.onGround = true;
       const jumped = plat.id - player.lastPlatformId;
-      const highestId = platforms[platforms.length - 1].id;
-      const isHighest = plat.id === highestId;
-      if (isHighest) {
-        const heightBoost = comboMultiplier >= 4 ? comboMultiplier / 2 : 1;
-        const needed = 4 * heightBoost;
-        if (jumped >= needed) {
-          comboHits++;
-          if (comboHits >= comboMultiplier) {
-            comboMultiplier *= 2;
-            comboHits = 0;
-          }
-          score += jumped * comboMultiplier;
-        } else {
-          score += jumped;
+      if (jumped >= 3) {
+        comboHits++;
+        if (comboHits >= comboMultiplier) {
+          comboMultiplier *= 2;
+          comboHits = 0;
         }
+        score += jumped * comboMultiplier;
       } else {
         score += jumped;
         comboMultiplier = 1;
