@@ -42,7 +42,8 @@ let speed = 2;
 let player, platforms, keys, gameOver, gameStarted, score;
 let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
-let platformSpacing, nextPlatformId, comboActive;
+let platformSpacing, nextPlatformId, comboMultiplier;
+let stars;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -79,7 +80,8 @@ function initGame(diff) {
     });
   }
   nextPlatformId = num;
-  comboActive = false;
+  comboMultiplier = 1;
+  stars = [];
   keys = {};
   gameOver = false;
   gameStarted = false;
@@ -129,25 +131,43 @@ function update() {
       player.vy = 0;
       player.onGround = true;
       const jumped = plat.id - player.lastPlatformId;
-      comboActive = jumped >= 3;
-      const multiplier = comboActive ? 2 : 1;
-      score += jumped * multiplier;
+      if (jumped >= 3) {
+        comboMultiplier = comboMultiplier > 1 ? comboMultiplier * 2 : 2;
+        score += jumped * comboMultiplier;
+      } else {
+        score += jumped;
+        comboMultiplier = 1;
+      }
       player.lastPlatformId = plat.id;
     }
   }
 
   if (gameStarted) {
+    let scroll = speed;
     if (player.y < canvas.height / 2) {
       const diffY = canvas.height / 2 - player.y;
       player.y = canvas.height / 2;
-      for (let plat of platforms) {
-        plat.y += diffY + speed;
-      }
-    } else {
-      for (let plat of platforms) {
-        plat.y += speed;
-      }
+      scroll += diffY;
     }
+    for (let plat of platforms) {
+      plat.y += scroll;
+    }
+    for (let star of stars) {
+      star.y += scroll;
+    }
+  }
+
+  if (comboMultiplier > 1) {
+    const cx = player.x + player.width / 2;
+    const cy = player.y + player.height;
+    const last = stars[stars.length - 1];
+    if (!last || Math.hypot(cx - last.x, cy - last.y) > 20) {
+      stars.push({ x: cx, y: cy, life: 60 });
+    }
+  }
+  for (let i = stars.length - 1; i >= 0; i--) {
+    stars[i].life--;
+    if (stars[i].life <= 0) stars.splice(i, 1);
   }
 
   // spawn new platforms
@@ -172,13 +192,31 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#88f';
+  if (comboMultiplier > 1) {
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    grad.addColorStop(0, '#ff0000');
+    grad.addColorStop(0.17, '#ff7f00');
+    grad.addColorStop(0.33, '#ffff00');
+    grad.addColorStop(0.5, '#00ff00');
+    grad.addColorStop(0.67, '#0000ff');
+    grad.addColorStop(0.83, '#4b0082');
+    grad.addColorStop(1, '#8b00ff');
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = '#88f';
+  }
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = '#555';
   for (let plat of platforms) {
     ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
   }
+
+  for (let star of stars) {
+    ctx.globalAlpha = star.life / 60;
+    drawStar(star.x, star.y, 5);
+  }
+  ctx.globalAlpha = 1;
 
   // draw game area border
   ctx.strokeStyle = '#000';
@@ -200,10 +238,22 @@ function draw() {
   ctx.font = '24px Arial';
   ctx.textAlign = 'right';
   ctx.fillText(`Score: ${score}`, canvas.width - 20, 30);
-  if (comboActive) {
-    ctx.fillText('Combo x2!', canvas.width - 20, 60);
+  if (comboMultiplier > 1) {
+    ctx.fillText(`Combo x${comboMultiplier}!`, canvas.width - 20, 60);
   }
 }
+
+function drawStar(x, y, r) {
+  ctx.fillStyle = '#ff0';
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const outer = (18 + i * 72) * Math.PI / 180;
+    const inner = (54 + i * 72) * Math.PI / 180;
+    ctx.lineTo(x + Math.cos(outer) * r, y - Math.sin(outer) * r);
+    ctx.lineTo(x + Math.cos(inner) * r * 0.5, y - Math.sin(inner) * r * 0.5);
+  }
+  ctx.closePath();
+  ctx.fill();
 
 function showGameOverScreen() {
   const gameOverDiv = document.getElementById('gameOver');
