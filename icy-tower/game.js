@@ -104,7 +104,11 @@ function update() {
   else player.vx = 0;
 
   if (keys['Space'] && player.onGround) {
-    player.vy = -20;
+    let jumpPower = -20;
+    if (comboMultiplier >= 4) {
+      jumpPower *= comboMultiplier / 2;
+    }
+    player.vy = jumpPower;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
   }
@@ -132,13 +136,19 @@ function update() {
       player.vy = 0;
       player.onGround = true;
       const jumped = plat.id - player.lastPlatformId;
-      if (jumped >= 3) {
-        comboHits++;
-        if (comboHits >= comboMultiplier) {
-          comboMultiplier *= 2;
-          comboHits = 0;
+      const highestId = platforms[platforms.length - 1].id;
+      const isHighest = plat.id === highestId;
+      if (isHighest) {
+        if (jumped >= 3) {
+          comboHits++;
+          if (comboHits >= comboMultiplier) {
+            comboMultiplier *= 2;
+            comboHits = 0;
+          }
+          score += jumped * comboMultiplier;
+        } else {
+          score += jumped;
         }
-        score += jumped * comboMultiplier;
       } else {
         score += jumped;
         comboMultiplier = 1;
