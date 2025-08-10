@@ -135,12 +135,23 @@ function update() {
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
       if (skipped >= 3) {
-        comboHits++;
+        if (comboMultiplier === 1) {
+          // first long jump starts the combo at x2
+          comboMultiplier = 2;
+          comboHits = 0;
+        } else {
+          // count consecutive long jumps after combo start
+          comboHits++;
+        }
+
+        // score with current multiplier before potential upgrade
+        score += jumped * comboMultiplier;
+
+        // increase combo after required number of long jumps
         if (comboHits >= comboMultiplier) {
-          comboMultiplier *= 2;
+          comboMultiplier += 2;
           comboHits = 0;
         }
-        score += jumped * comboMultiplier;
       } else {
         score += jumped;
         comboMultiplier = 1;
