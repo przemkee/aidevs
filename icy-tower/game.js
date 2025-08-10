@@ -133,7 +133,8 @@ function update() {
       player.vy = 0;
       player.onGround = true;
       const jumped = plat.id - player.lastPlatformId;
-      if (jumped >= 3) {
+      const skipped = jumped - 1; // number of platforms skipped in this jump
+      if (skipped >= 3) {
         comboHits++;
         if (comboHits >= comboMultiplier) {
           comboMultiplier *= 2;
