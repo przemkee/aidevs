@@ -30,9 +30,6 @@ startBtn.addEventListener('click', () => {
   canvas.style.display = 'block';
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  if (canvas.requestFullscreen) {
-    canvas.requestFullscreen();
-  }
   const diff = difficulties[difficultySelect.value];
   initGame(diff);
   requestAnimationFrame(loop);
@@ -92,12 +89,12 @@ document.addEventListener('keyup', e => {
 });
 
 function update() {
-  if (keys['ArrowLeft']) player.vx = -3;
-  else if (keys['ArrowRight']) player.vx = 3;
+  if (keys['ArrowLeft']) player.vx = -4;
+  else if (keys['ArrowRight']) player.vx = 4;
   else player.vx = 0;
 
   if (keys['Space'] && player.onGround) {
-    player.vy = -10;
+    player.vy = -20;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
   }
@@ -125,7 +122,17 @@ function update() {
       player.vy = 0;
       player.onGround = true;
     }
-    if (gameStarted) {
+  }
+
+  if (gameStarted) {
+    if (player.y < canvas.height / 2) {
+      const diffY = canvas.height / 2 - player.y;
+      player.y = canvas.height / 2;
+      for (let plat of platforms) {
+        plat.y += diffY;
+      }
+    }
+    for (let plat of platforms) {
       plat.y += speed;
     }
   }
@@ -186,20 +193,44 @@ function showGameOverScreen() {
   const gameOverDiv = document.getElementById('gameOver');
   const finalScore = document.getElementById('finalScore');
   const scoreTable = document.getElementById('scoreTable');
-  const downloadLink = document.getElementById('downloadScores');
 
   finalScore.textContent = `Gratulacje! Twój wynik: ${score}`;
   const scores = JSON.parse(localStorage.getItem('scores') || '[]');
-  scores.push(score);
-  scores.sort((a, b) => b - a);
-  localStorage.setItem('scores', JSON.stringify(scores));
   scoreTable.textContent = scores
-    .map((s, i) => `${i + 1}. ${s}`)
+    .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
     .join('\n');
-  const blob = new Blob([scoreTable.textContent], { type: 'text/plain' });
-  downloadLink.href = URL.createObjectURL(blob);
   gameOverDiv.style.display = 'flex';
 }
+
+const saveScoreBtn = document.getElementById('saveScoreBtn');
+saveScoreBtn.addEventListener('click', () => {
+  const nicknameInput = document.getElementById('nickname');
+  const scoreTable = document.getElementById('scoreTable');
+  const nick = nicknameInput.value.trim() || 'Anon';
+  const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+  scores.push({ name: nick, score });
+  scores.sort((a, b) => b.score - a.score);
+  localStorage.setItem('scores', JSON.stringify(scores));
+  scoreTable.textContent = scores
+    .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
+    .join('\n');
+  const blob = new Blob([scoreTable.textContent], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'scores.txt';
+  a.click();
+  saveScoreBtn.disabled = true;
+});
+
+const newGameBtn = document.getElementById('newGameBtn');
+newGameBtn.addEventListener('click', () => {
+  const gameOverDiv = document.getElementById('gameOver');
+  gameOverDiv.style.display = 'none';
+  menu.style.display = 'block';
+  canvas.style.display = 'none';
+  document.getElementById('nickname').value = '';
+  saveScoreBtn.disabled = false;
+});
 
 function loop() {
   if (gameOver) {
