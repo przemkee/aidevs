@@ -42,13 +42,16 @@ const gravity = 0.5;
 let platformWidth = 90;
 let speed = 2;
 
-let player, platforms, keys, gameOver, gameStarted;
+let player, platforms, keys, gameOver, gameStarted, score;
+let gameAreaWidth, gameAreaX;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
   speed = diff.speed;
+  gameAreaWidth = Math.min(600, canvas.width);
+  gameAreaX = (canvas.width - gameAreaWidth) / 2;
   player = {
-    x: canvas.width / 2 - 20,
+    x: gameAreaX + gameAreaWidth / 2 - 20,
     y: canvas.height - 80,
     width: 40,
     height: 60,
@@ -58,15 +61,15 @@ function initGame(diff) {
   };
   platforms = [];
   platforms.push({
-    x: 0,
+    x: gameAreaX,
     y: canvas.height - 20,
-    width: canvas.width,
+    width: gameAreaWidth,
     height: 10
   });
   const num = 6;
   for (let i = 1; i < num; i++) {
     platforms.push({
-      x: Math.random() * (canvas.width - platformWidth),
+      x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
       y: canvas.height - 20 - i * 100,
       width: platformWidth,
       height: 10
@@ -75,6 +78,7 @@ function initGame(diff) {
   keys = {};
   gameOver = false;
   gameStarted = false;
+  score = 0;
 }
 
 document.addEventListener('keydown', e => {
@@ -101,8 +105,10 @@ function update() {
   player.y += player.vy;
 
   // boundaries
-  if (player.x < 0) player.x = 0;
-  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+  if (player.x < gameAreaX) player.x = gameAreaX;
+  if (player.x + player.width > gameAreaX + gameAreaWidth) {
+    player.x = gameAreaX + gameAreaWidth - player.width;
+  }
 
   player.onGround = false;
   for (let plat of platforms) {
@@ -127,11 +133,12 @@ function update() {
     while (platforms.length && platforms[0].y > canvas.height) {
       platforms.shift();
       platforms.push({
-        x: Math.random() * (canvas.width - platformWidth),
+        x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
         y: -10,
         width: platformWidth,
         height: 10
       });
+      score++;
     }
   }
 
@@ -160,6 +167,11 @@ function draw() {
     ctx.fillStyle = '#faa';
     ctx.fillRect(player.x, player.y, player.width, 30);
   }
+
+  ctx.fillStyle = '#000';
+  ctx.font = '24px Arial';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Score: ${score}`, canvas.width - 20, 30);
 }
 
 function loop() {
