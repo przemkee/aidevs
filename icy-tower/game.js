@@ -24,6 +24,7 @@ const difficulties = {
 
 const platformHeight = 20;
 const borderWidth = 2;
+const ringRadius = 15;
 
 function updateScoreboard() {
   let scores;
@@ -65,8 +66,9 @@ let player, platforms, keys, gameOver, gameStarted, score;
 let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
 let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
-let stars;
+let stars, rings;
 let longJumpReady;
+let boostTimer;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -93,14 +95,23 @@ function initGame(diff) {
     height: platformHeight,
     id: 0
   });
+  rings = [];
   for (let i = 1; i < num; i++) {
-    platforms.push({
+    const plat = {
       x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
       y: canvas.height - platformHeight - i * platformSpacing,
       width: platformWidth,
       height: platformHeight,
       id: i
-    });
+    };
+    platforms.push(plat);
+    if (i % 20 === 0) {
+      rings.push({
+        x: plat.x + plat.width / 2,
+        y: plat.y - ringRadius,
+        radius: ringRadius
+      });
+    }
   }
   nextPlatformId = num;
   comboMultiplier = 1;
@@ -111,6 +122,8 @@ function initGame(diff) {
   gameOver = false;
   gameStarted = false;
   score = 0;
+  boostTimer = 0;
+  scoreDisplay.style.color = '#fff';
   gameOverDisplayed = false;
 }
 
@@ -163,6 +176,7 @@ function update() {
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
       if (skipped >= 3) {
+        boostTimer = 60;
         if (comboMultiplier === 1) {
           // first long jump starts the combo at x2
           comboMultiplier = 2;
@@ -207,6 +221,9 @@ function update() {
     for (let star of stars) {
       star.y += scroll;
     }
+    for (let ring of rings) {
+      ring.y += scroll;
+    }
   }
 
   if (comboMultiplier > 1) {
@@ -221,11 +238,30 @@ function update() {
     stars[i].life--;
     if (stars[i].life <= 0) stars.splice(i, 1);
   }
+  for (let i = rings.length - 1; i >= 0; i--) {
+    const ring = rings[i];
+    if (
+      player.x < ring.x + ring.radius &&
+      player.x + player.width > ring.x - ring.radius &&
+      player.y < ring.y + ring.radius &&
+      player.y + player.height > ring.y - ring.radius
+    ) {
+      rings.splice(i, 1);
+      score += 1000;
+      scoreDisplay.style.color = 'gold';
+      setTimeout(() => (scoreDisplay.style.color = '#fff'), 1000);
+      continue;
+    }
+    if (ring.y - ring.radius > canvas.height) rings.splice(i, 1);
+  }
 
   scoreDisplay.textContent = score;
-  if (comboMultiplier > 1) {
+  if (boostTimer > 0) {
     comboDisplay.style.display = 'block';
-    comboDisplay.textContent = `Combo x${comboMultiplier}!`;
+    comboDisplay.textContent = 'BOOST!';
+    comboDisplay.style.color = 'red';
+    comboDisplay.style.borderColor = 'red';
+    boostTimer--;
   } else {
     comboDisplay.style.display = 'none';
   }
@@ -235,13 +271,17 @@ function update() {
     while (platforms.length && platforms[0].y > canvas.height) {
       platforms.shift();
       const last = platforms[platforms.length - 1];
-      platforms.push({
+      const plat = {
         x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
         y: last.y - platformSpacing,
         width: platformWidth,
         height: platformHeight,
         id: nextPlatformId++
-      });
+      };
+      platforms.push(plat);
+      if (plat.id % 20 === 0) {
+        rings.push({ x: plat.x + plat.width / 2, y: plat.y - ringRadius, radius: ringRadius });
+      }
     }
   }
 
@@ -269,6 +309,14 @@ function draw() {
     ctx.strokeStyle = '#000';
     ctx.lineWidth = borderWidth;
     ctx.strokeRect(plat.x, plat.y, plat.width, plat.height);
+  }
+
+  for (let ring of rings) {
+    ctx.strokeStyle = 'gold';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   for (let star of stars) {
