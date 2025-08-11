@@ -8,10 +8,12 @@ const config = {
 };
 
 const savedSetting = localStorage.getItem('wallBounceEnabled'); // WALL-BOUNCE
+const savedMusic = localStorage.getItem('musicEnabled');
 const game = { // WALL-BOUNCE
   settings: {
     wallBounceEnabled: savedSetting !== null ? JSON.parse(savedSetting) : config.wallBounceEnabledDefault,
-    speedMultiplier: 1
+    speedMultiplier: 1,
+    musicEnabled: savedMusic !== null ? JSON.parse(savedMusic) : true
   }
 };
 
@@ -33,7 +35,9 @@ const toggleWallBounce = document.getElementById('toggleWallBounce');
 const speedMinus = document.getElementById('speedMinus');
 const speedPlus = document.getElementById('speedPlus');
 const speedValue = document.getElementById('speedValue');
+const toggleMusic = document.getElementById('toggleMusic');
 toggleWallBounce.checked = game.settings.wallBounceEnabled;
+toggleMusic.checked = game.settings.musicEnabled;
 function updateSpeedLabel() { speedValue.textContent = game.settings.speedMultiplier.toFixed(1) + 'x'; }
 updateSpeedLabel();
 toggleWallBounce.addEventListener('change', () => {
@@ -48,6 +52,41 @@ speedPlus.addEventListener('click', () => {
   game.settings.speedMultiplier = Math.min(3, game.settings.speedMultiplier + 0.5);
   updateSpeedLabel();
 });
+toggleMusic.addEventListener('change', () => {
+  game.settings.musicEnabled = toggleMusic.checked;
+  localStorage.setItem('musicEnabled', game.settings.musicEnabled);
+  if (game.settings.musicEnabled) {
+    startMusic();
+  } else {
+    stopMusic();
+  }
+});
+
+// simple retro melody using Tone.js
+const synth = new Tone.MonoSynth({
+  oscillator: { type: 'square' },
+  envelope: { attack: 0.05, decay: 0.2, sustain: 0.2, release: 0.8 }
+}).toDestination();
+Tone.Transport.bpm.value = 120;
+const melody = ['C4', 'E4', 'G4', 'C5', 'E5', 'G5', 'E5', 'C5'];
+const sequence = new Tone.Sequence((time, note) => {
+  synth.triggerAttackRelease(note, '8n', time);
+}, melody, '8n');
+sequence.loop = true;
+Tone.Transport.loop = true;
+Tone.Transport.loopEnd = '1m';
+
+function startMusic() {
+  Tone.start();
+  if (sequence.state !== 'started') {
+    sequence.start(0);
+  }
+  Tone.Transport.start();
+}
+
+function stopMusic() {
+  Tone.Transport.stop();
+}
 
 settingsBtn.addEventListener('click', () => {
   menu.style.display = 'none';
@@ -97,6 +136,9 @@ function startGame() {
   canvas.height = window.innerHeight;
   const diff = difficulties[difficultySelect.value];
   initGame(diff);
+  if (game.settings.musicEnabled) {
+    startMusic();
+  }
   requestAnimationFrame(loop);
 }
 
