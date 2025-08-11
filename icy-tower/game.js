@@ -162,7 +162,7 @@ function initGame(diff) {
     }
     this.lastBounceDir = this.wallContactDir;
     // give the player extra horizontal distance after bouncing off a wall
-    this.vx = -this.wallContactDir * 8 * game.settings.speedMultiplier;
+    this.vx = -this.wallContactDir * 16 * game.settings.speedMultiplier;
     this.vy = -20 * 1.5 * game.settings.speedMultiplier;
     this.flipping = true;
     this.rotation = 0;
