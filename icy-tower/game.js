@@ -5,7 +5,6 @@ const ctx = canvas.getContext('2d');
 const config = {
   wallBounceEnabledDefault: true,
   chargeMaxLevel: 5,
-  chargeTickMs: 350,
   baseJumpVelocity: 520,
   baseWallBounceSpeed: 380,
   wallSlideMaxDownSpeed: 120,
@@ -143,18 +142,9 @@ function initGame(diff) {
     lastPlatformId: 0,
     isCombo: false, // WALL-BOUNCE
     chargeLevel: 0, // WALL-BOUNCE
-    lastChargeTick: 0, // WALL-BOUNCE
     wallContactDir: 0 // WALL-BOUNCE
   };
   // WALL-BOUNCE methods
-  player.updateComboCharge = function(now) {
-    if (!game.settings.wallBounceEnabled || !this.isCombo) return;
-    if (now - this.lastChargeTick >= config.chargeTickMs) {
-      this.chargeLevel = Math.min(config.chargeMaxLevel, this.chargeLevel + 1);
-      this.lastChargeTick = now;
-      console.log('Charge level', this.chargeLevel); // WALL-BOUNCE
-    }
-  };
   player.tryWallBounce = function() {
     if (this.wallContactDir === 0) return false;
     const L = this.chargeLevel;
@@ -163,8 +153,10 @@ function initGame(diff) {
     const frame = 1 / 60;
     this.vx = -this.wallContactDir * config.baseWallBounceSpeed * speedMul * frame * game.settings.speedMultiplier;
     this.vy = -config.baseJumpVelocity * heightMul * frame * game.settings.speedMultiplier;
-    this.chargeLevel = 0;
-    console.log('Charge used, level', this.chargeLevel); // WALL-BOUNCE
+    if (this.chargeLevel < config.chargeMaxLevel) {
+      this.chargeLevel++;
+    }
+    console.log('Charge increased, level', this.chargeLevel); // WALL-BOUNCE
     return true;
   };
   console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', charge=' + player.chargeLevel); // WALL-BOUNCE
@@ -226,7 +218,6 @@ function update(now) { // WALL-BOUNCE
   prevKeys['Space'] = keys['Space']; // WALL-BOUNCE
 
   player.isCombo = comboMultiplier > 1; // WALL-BOUNCE
-  player.updateComboCharge(now); // WALL-BOUNCE
 
   if (left) player.vx = -4 * game.settings.speedMultiplier;
   else if (right) player.vx = 4 * game.settings.speedMultiplier;
@@ -332,6 +323,9 @@ function update(now) { // WALL-BOUNCE
       for (let ring of rings) {
         ring.y += diffY;
       }
+    }
+    if (player.onGround) {
+      player.y += scroll;
     }
     for (let plat of platforms) {
       plat.y += scroll;
