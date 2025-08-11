@@ -70,7 +70,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-const gravity = 0.5;
+const gravity = 8;
 const jumpSpeed = 80;
 let platformWidth = 90;
 let speed = 2;
@@ -90,6 +90,7 @@ let stars, rings;
 let longJumpReady;
 let boostActive;
 let wallBounceEnabled, wallBounceCount, lastWallSide;
+let bounceSpeedBoost;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -147,6 +148,7 @@ function initGame(diff) {
   boostActive = false;
   wallBounceCount = 0;
   lastWallSide = null;
+  bounceSpeedBoost = 1;
   wallBounceBar.style.display = wallBounceEnabled ? 'block' : 'none';
   updateBounceBar();
   scoreDisplay.style.color = '#fff';
@@ -167,9 +169,9 @@ function update() {
   }
 
   const inputX = (keys['ArrowLeft'] ? -1 : 0) + (keys['ArrowRight'] ? 1 : 0);
-  const accel = player.onGround ? groundAcceleration : airAcceleration;
+  const accel = (player.onGround ? groundAcceleration : airAcceleration) * bounceSpeedBoost;
   player.vx += inputX * accel;
-  const maxSpeed = player.onGround ? maxGroundSpeed : maxAirSpeed;
+  const maxSpeed = (player.onGround ? maxGroundSpeed : maxAirSpeed) * bounceSpeedBoost;
   if (player.vx > maxSpeed) player.vx = maxSpeed;
   if (player.vx < -maxSpeed) player.vx = -maxSpeed;
   if (player.onGround && inputX === 0) {
@@ -251,6 +253,7 @@ function update() {
 
   if (player.onGround) {
     boostActive = false;
+    bounceSpeedBoost = 1;
     if (wallBounceEnabled && wallBounceCount) {
       wallBounceCount = 0;
       updateBounceBar();
@@ -420,7 +423,8 @@ function handleWallBounce(isLeft) {
   player.vy = -jumpSpeed + gravity;
   player.y += player.vy - prevVy;
   const timeToGround = (-player.vy * 2) / gravity;
-  player.vx = dir * 0.75 * gameAreaWidth / timeToGround;
+  player.vx = dir * 0.75 * gameAreaWidth / timeToGround * 2;
+  bounceSpeedBoost = 2;
   player.wallBounceTimer = 5;
   if (wallBounceCount < maxWallBounceLevel) {
     wallBounceCount++;
