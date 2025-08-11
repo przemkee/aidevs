@@ -74,6 +74,13 @@ const gravity = 0.5;
 let platformWidth = 90;
 let speed = 2;
 
+// Movement tuning
+const groundAcceleration = 0.5;
+const airAcceleration = 0.2;
+const groundFriction = 0.8;
+const maxGroundSpeed = 4;
+const maxAirSpeed = 6;
+
 let player, platforms, keys, gameOver, gameStarted, score;
 let gameOverDisplayed = false;
 let gameAreaWidth, gameAreaX;
@@ -156,10 +163,17 @@ document.addEventListener('keyup', e => {
 function update() {
   if (player.wallBounceTimer > 0) {
     player.wallBounceTimer--;
-  } else {
-    if (keys['ArrowLeft']) player.vx = -4;
-    else if (keys['ArrowRight']) player.vx = 4;
-    else player.vx = 0;
+  }
+
+  const inputX = (keys['ArrowLeft'] ? -1 : 0) + (keys['ArrowRight'] ? 1 : 0);
+  const accel = player.onGround ? groundAcceleration : airAcceleration;
+  player.vx += inputX * accel;
+  const maxSpeed = player.onGround ? maxGroundSpeed : maxAirSpeed;
+  if (player.vx > maxSpeed) player.vx = maxSpeed;
+  if (player.vx < -maxSpeed) player.vx = -maxSpeed;
+  if (player.onGround && inputX === 0) {
+    player.vx *= groundFriction;
+    if (Math.abs(player.vx) < 0.1) player.vx = 0;
   }
 
   if (keys['Space'] && player.onGround) {
@@ -401,8 +415,9 @@ function handleWallBounce(isLeft) {
   if (lastWallSide === side) return;
   lastWallSide = side;
   const dir = isLeft ? 1 : -1;
-  player.vx = dir * 8;
   player.vy = -20;
+  const timeToGround = (-player.vy * 2) / gravity;
+  player.vx = dir * 0.75 * gameAreaWidth / timeToGround;
   player.wallBounceTimer = 5;
   if (wallBounceCount < maxWallBounceLevel) {
     wallBounceCount++;
