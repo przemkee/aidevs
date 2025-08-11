@@ -7,6 +7,8 @@ const difficultySelect = document.getElementById('difficulty');
 const gameContainer = document.getElementById('gameContainer');
 const scoreDisplay = document.getElementById('currentScore');
 const comboDisplay = document.getElementById('comboDisplay');
+const wallBounceBar = document.getElementById('wallBounceBar');
+const wallBounceFill = document.getElementById('wallBounceFill');
 const scoreTable = document.getElementById('scoreTable');
 
 const backgroundImg = new Image();
@@ -25,6 +27,15 @@ const difficulties = {
 const platformHeight = 20;
 const borderWidth = 2;
 const ringRadius = 15;
+const maxWallBounceLevel = 5;
+const rainbowGradients = [
+  'transparent',
+  'red',
+  'linear-gradient(red,orange)',
+  'linear-gradient(red,orange,yellow)',
+  'linear-gradient(red,orange,yellow,green)',
+  'linear-gradient(red,orange,yellow,green,blue)'
+];
 
 function updateScoreboard() {
   let scores;
@@ -46,6 +57,7 @@ function startGame() {
   canvas.width = 600;
   canvas.height = window.innerHeight;
   const diff = difficulties[difficultySelect.value];
+  wallBounceEnabled = document.getElementById('wallBounceToggle').checked;
   initGame(diff);
   requestAnimationFrame(loop);
 }
@@ -68,7 +80,8 @@ let gameAreaWidth, gameAreaX;
 let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
 let stars, rings;
 let longJumpReady;
-let boostTimer;
+let boostActive;
+let wallBounceEnabled, wallBounceCount;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -122,7 +135,10 @@ function initGame(diff) {
   gameOver = false;
   gameStarted = false;
   score = 0;
-  boostTimer = 0;
+  boostActive = false;
+  wallBounceCount = 0;
+  wallBounceBar.style.display = wallBounceEnabled ? 'block' : 'none';
+  updateBounceBar();
   scoreDisplay.style.color = '#fff';
   gameOverDisplayed = false;
 }
@@ -147,6 +163,7 @@ function update() {
       longJumpReady = false;
     }
     player.vy = -20 * heightBoost;
+    boostActive = heightBoost > 1;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
   }
@@ -156,9 +173,13 @@ function update() {
   player.y += player.vy;
 
   // boundaries
-  if (player.x < gameAreaX) player.x = gameAreaX;
+  if (player.x < gameAreaX) {
+    player.x = gameAreaX;
+    if (wallBounceEnabled && !player.onGround) handleWallBounce(true);
+  }
   if (player.x + player.width > gameAreaX + gameAreaWidth) {
     player.x = gameAreaX + gameAreaWidth - player.width;
+    if (wallBounceEnabled && !player.onGround) handleWallBounce(false);
   }
 
   player.onGround = false;
@@ -176,7 +197,6 @@ function update() {
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
       if (skipped >= 3) {
-        boostTimer = 60;
         if (comboMultiplier === 1) {
           // first long jump starts the combo at x2
           comboMultiplier = 2;
@@ -205,6 +225,14 @@ function update() {
         longJumpReady = false;
       }
       player.lastPlatformId = plat.id;
+    }
+  }
+
+  if (player.onGround) {
+    boostActive = false;
+    if (wallBounceEnabled && wallBounceCount) {
+      wallBounceCount = 0;
+      updateBounceBar();
     }
   }
 
@@ -256,12 +284,11 @@ function update() {
   }
 
   scoreDisplay.textContent = score;
-  if (boostTimer > 0) {
+  if (boostActive) {
     comboDisplay.style.display = 'block';
     comboDisplay.textContent = 'BOOST!';
     comboDisplay.style.color = 'red';
     comboDisplay.style.borderColor = 'red';
-    boostTimer--;
   } else if (comboMultiplier > 1) {
     comboDisplay.style.display = 'block';
     comboDisplay.textContent = `KOMBO x${comboMultiplier}`;
@@ -359,6 +386,28 @@ function drawStar(x, y, r) {
   }
   ctx.closePath();
   ctx.fill();
+}
+
+function handleWallBounce(isLeft) {
+  const dir = isLeft ? 1 : -1;
+  if (wallBounceCount < maxWallBounceLevel) {
+    player.vx = dir * Math.abs(player.vx) * 1.1;
+    if (player.vy < 0) player.vy *= 1.1;
+    wallBounceCount++;
+  } else {
+    player.vx = dir * Math.abs(player.vx);
+  }
+  updateBounceBar();
+}
+
+function updateBounceBar() {
+  if (!wallBounceEnabled) {
+    wallBounceBar.style.display = 'none';
+    return;
+  }
+  wallBounceBar.style.display = 'block';
+  wallBounceFill.style.height = (wallBounceCount / maxWallBounceLevel) * 100 + '%';
+  wallBounceFill.style.background = rainbowGradients[wallBounceCount];
 }
 
 function showGameOverScreen() {
