@@ -139,7 +139,10 @@ function initGame(diff) {
     lastPlatformId: 0,
     isCombo: false, // WALL-BOUNCE
     wallBounceCount: 0, // WALL-BOUNCE
-    wallContactDir: 0 // WALL-BOUNCE
+    wallContactDir: 0, // WALL-BOUNCE
+    rotation: 0, // WALL-BOUNCE flip rotation
+    flipDir: 0, // WALL-BOUNCE flip direction
+    flipping: false // WALL-BOUNCE flip state
   };
   // WALL-BOUNCE methods
   player.tryWallBounce = function() {
@@ -150,7 +153,10 @@ function initGame(diff) {
     const mul = 1.5 + 0.5 * (this.wallBounceCount - 1);
     const frame = 1 / 60;
     this.vx = -this.wallContactDir * config.baseWallBounceSpeed * mul * frame * game.settings.speedMultiplier;
-    this.vy = -config.baseJumpVelocity * mul * frame * game.settings.speedMultiplier;
+    this.vy = -config.baseJumpVelocity * mul * frame * game.settings.speedMultiplier * 3;
+    this.flipping = true;
+    this.rotation = 0;
+    this.flipDir = -this.wallContactDir;
     console.log('Wall bounce streak', this.wallBounceCount); // WALL-BOUNCE
     return true;
   };
@@ -240,6 +246,14 @@ function update(now) { // WALL-BOUNCE
 
   player.x += player.vx;
   player.y += player.vy;
+
+  if (player.flipping) {
+    player.rotation += player.flipDir * 0.3;
+    if (Math.abs(player.rotation) >= Math.PI * 2) {
+      player.flipping = false;
+      player.rotation = 0;
+    }
+  }
 
   // boundaries and wall contact with automatic bounce // WALL-BOUNCE
   const prevWallContact = player.wallContactDir;
@@ -444,15 +458,19 @@ function draw() {
   ctx.lineWidth = 4;
   ctx.strokeRect(gameAreaX, 0, gameAreaWidth, canvas.height);
 
+  ctx.save();
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+  if (player.flipping) ctx.rotate(player.rotation);
   if (characterImg.complete) {
-    ctx.drawImage(characterImg, player.x, player.y, player.width, player.height);
+    ctx.drawImage(characterImg, -player.width / 2, -player.height / 2, player.width, player.height);
   } else {
     ctx.fillStyle = '#0a0';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.fillRect(-player.width / 2, -player.height / 2, player.width, player.height);
   }
   ctx.strokeStyle = '#000';
   ctx.lineWidth = borderWidth;
-  ctx.strokeRect(player.x, player.y, player.width, player.height);
+  ctx.strokeRect(-player.width / 2, -player.height / 2, player.width, player.height);
+  ctx.restore();
 
   drawBounceBar(); // WALL-BOUNCE
 
