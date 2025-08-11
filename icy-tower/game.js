@@ -25,6 +25,9 @@ const gameContainer = document.getElementById('gameContainer');
 const scoreDisplay = document.getElementById('currentScore');
 const comboDisplay = document.getElementById('comboDisplay');
 const scoreTable = document.getElementById('scoreTable');
+const gameOverDiv = document.getElementById('gameOver');
+const saveScoreBtn = document.getElementById('saveScoreBtn');
+const newGameBtn = document.getElementById('newGameBtn');
 // WALL-BOUNCE: option controls
 const toggleWallBounce = document.getElementById('toggleWallBounce');
 const speedMinus = document.getElementById('speedMinus');
@@ -100,7 +103,9 @@ function startGame() {
 startBtn.addEventListener('click', startGame);
 
 document.addEventListener('keydown', e => {
-  if (menu.style.display !== 'none' && e.code === 'Space') {
+  if (gameOverDiv.style.display !== 'none' && e.code === 'Space') {
+    newGameBtn.click();
+  } else if (menu.style.display !== 'none' && e.code === 'Space') {
     startGame();
   }
 });
@@ -278,7 +283,7 @@ function update(now) { // WALL-BOUNCE
       player.wallBounceCount = 0;
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
-      if (skipped >= 3) {
+      if (skipped >= 4) {
         boostTimer = 60;
         if (comboMultiplier === 1) {
           // first long jump starts the combo at x2
@@ -478,7 +483,6 @@ function drawStar(x, y, r) {
 }
 
 function showGameOverScreen() {
-  const gameOverDiv = document.getElementById('gameOver');
   const finalScore = document.getElementById('finalScore');
 
   finalScore.textContent = `Gratulacje! Twój wynik: ${score}`;
@@ -486,7 +490,6 @@ function showGameOverScreen() {
   gameOverDiv.style.display = 'flex';
 }
 
-const saveScoreBtn = document.getElementById('saveScoreBtn');
 saveScoreBtn.addEventListener('click', () => {
   const nicknameInput = document.getElementById('nickname');
   const scoreTable = document.getElementById('scoreTable');
@@ -509,9 +512,7 @@ saveScoreBtn.addEventListener('click', () => {
   saveScoreBtn.disabled = true;
 });
 
-const newGameBtn = document.getElementById('newGameBtn');
 newGameBtn.addEventListener('click', () => {
-  const gameOverDiv = document.getElementById('gameOver');
   gameOverDiv.style.display = 'none';
   menu.style.display = 'block';
   settingsMenu.style.display = 'none';
