@@ -4,20 +4,7 @@ const ctx = canvas.getContext('2d');
 // WALL-BOUNCE: global configuration
 const config = {
   wallBounceEnabledDefault: true,
-  maxBounceCount: 5,
-  wallSlideMaxDownSpeed: 120,
-  ui: {
-    barWidth: 18,
-    barHeight: 180,
-    barRightPadding: 12,
-    barTopPadding: 24,
-    colorBg: 'rgba(20,20,20,0.6)',
-    colorSegEmpty: 'rgba(80,80,80,0.7)',
-    colorSegFull: '#ff6a00',
-    colorSegGlow: 'rgba(255,110,0,0.35)',
-    labelColor: '#ffffff',
-    font: '12px monospace'
-  }
+  wallSlideMaxDownSpeed: 120
 };
 
 const savedSetting = localStorage.getItem('wallBounceEnabled'); // WALL-BOUNCE
@@ -148,7 +135,6 @@ function initGame(diff) {
     isCombo: false, // WALL-BOUNCE
     wallBounceCount: 0, // WALL-BOUNCE
     wallContactDir: 0, // WALL-BOUNCE
-    lastBounceDir: 0, // WALL-BOUNCE prevent same-wall bounce
     rotation: 0, // WALL-BOUNCE flip rotation
     flipDir: 0, // WALL-BOUNCE flip direction
     flipping: false // WALL-BOUNCE flip state
@@ -156,14 +142,10 @@ function initGame(diff) {
   // WALL-BOUNCE methods
   player.tryWallBounce = function() {
     if (this.wallContactDir === 0) return false;
-    if (this.wallContactDir === this.lastBounceDir) return false;
-    if (this.wallBounceCount < config.maxBounceCount) {
-      this.wallBounceCount++;
-    }
-    this.lastBounceDir = this.wallContactDir;
-    // give the player extra horizontal distance after bouncing off a wall
-    this.vx = -this.wallContactDir * 16 * game.settings.speedMultiplier;
-    this.vy = -20 * 1.5 * game.settings.speedMultiplier;
+    if (this.wallBounceCount > 0) return false;
+    this.wallBounceCount = 1;
+    this.vx = -this.wallContactDir * 4 * game.settings.speedMultiplier;
+    this.vy = -20 * game.settings.speedMultiplier;
     this.flipping = true;
     this.rotation = 0;
     this.flipDir = -this.wallContactDir;
@@ -294,7 +276,6 @@ function update(now) { // WALL-BOUNCE
       player.vy = 0;
       player.onGround = true;
       player.wallBounceCount = 0;
-      player.lastBounceDir = 0;
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
       if (skipped >= 3) {
@@ -480,8 +461,6 @@ function draw() {
   // character sprite has no black outline
   ctx.restore();
 
-  drawBounceBar(); // WALL-BOUNCE
-
   // score and combo are displayed using DOM elements
 }
 
@@ -497,29 +476,6 @@ function drawStar(x, y, r) {
   ctx.closePath();
   ctx.fill();
 }
-
-function drawBounceBar() { // WALL-BOUNCE
-  if (!game.settings.wallBounceEnabled) return;
-  const ui = config.ui;
-  const x = canvas.width - ui.barRightPadding - ui.barWidth;
-  const y = ui.barTopPadding;
-  ctx.fillStyle = ui.colorBg;
-  ctx.fillRect(x - 4, y - 4, ui.barWidth + 8, ui.barHeight + 8);
-  const segHeight = ui.barHeight / config.maxBounceCount;
-  for (let i = 0; i < config.maxBounceCount; i++) {
-    const segY = y + ui.barHeight - (i + 1) * segHeight;
-    ctx.fillStyle = i < player.wallBounceCount ? ui.colorSegFull : ui.colorSegEmpty;
-    ctx.fillRect(x, segY, ui.barWidth, segHeight - 2);
-    if (i < player.wallBounceCount) {
-      ctx.fillStyle = ui.colorSegGlow;
-      ctx.fillRect(x, segY, ui.barWidth, segHeight - 2);
-    }
-  }
-  ctx.fillStyle = ui.labelColor;
-  ctx.font = ui.font;
-  ctx.fillText('WALL', x - 4, y - 6);
-  ctx.fillText(String(player.wallBounceCount), x + 2, y + ui.barHeight + 14);
-} // WALL-BOUNCE
 
 function showGameOverScreen() {
   const gameOverDiv = document.getElementById('gameOver');
@@ -578,4 +534,4 @@ function loop(now) { // WALL-BOUNCE
   requestAnimationFrame(loop);
 }
 
-// WALL-BOUNCE: Test by jumping between two close walls to chain bounces and watch the bounce bar update.
+// WALL-BOUNCE: Wall bounces match normal jumps and require landing before bouncing again.
