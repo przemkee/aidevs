@@ -161,7 +161,8 @@ function initGame(diff) {
       this.wallBounceCount++;
     }
     this.lastBounceDir = this.wallContactDir;
-    this.vx = -this.wallContactDir * 4 * game.settings.speedMultiplier;
+    // give the player extra horizontal distance after bouncing off a wall
+    this.vx = -this.wallContactDir * 8 * game.settings.speedMultiplier;
     this.vy = -20 * 1.5 * game.settings.speedMultiplier;
     this.flipping = true;
     this.rotation = 0;
@@ -476,9 +477,7 @@ function draw() {
     ctx.fillStyle = '#0a0';
     ctx.fillRect(-player.width / 2, -player.height / 2, player.width, player.height);
   }
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = borderWidth;
-  ctx.strokeRect(-player.width / 2, -player.height / 2, player.width, player.height);
+  // character sprite has no black outline
   ctx.restore();
 
   drawBounceBar(); // WALL-BOUNCE
