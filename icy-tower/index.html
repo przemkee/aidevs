@@ -14,26 +14,33 @@
     <pre id="scoreTable"></pre>
   </div>
 
-  <div id="menu">
-    <h1>Icy Tower Clone</h1>
-    <p>Umieść pliki <code>Background.jpg</code>, <code>step.jpg</code> i <code>character.jpg</code> w folderze <code>assets</code>, aby użyć własnych grafik.</p>
-    <p>Naciśnij Spację aby rozpocząć.</p>
-    <div>
-      <label>Poziom trudności:
-        <select id="difficulty">
-          <option value="easy">Łatwa</option>
-          <option value="medium">Średnia</option>
-          <option value="hard">Trudna</option>
-        </select>
-      </label>
+    <div id="menu">
+      <h1>Icy Tower Clone</h1>
+      <p>Umieść pliki <code>Background.jpg</code>, <code>step.jpg</code> i <code>character.jpg</code> w folderze <code>assets</code>, aby użyć własnych grafik.</p>
+      <p>Naciśnij Spację aby rozpocząć.</p>
+      <div>
+        <label>Poziom trudności:
+          <select id="difficulty">
+            <option value="easy">Łatwa</option>
+            <option value="medium">Średnia</option>
+            <option value="hard">Trudna</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>
+          <input type="checkbox" id="wallBounceToggle" checked />
+          Odbicia od ścian
+        </label>
+      </div>
+      <button id="startBtn">Start</button>
     </div>
-    <button id="startBtn">Start</button>
-  </div>
 
   <div id="gameContainer" style="display:none;">
     <canvas id="game"></canvas>
     <div id="currentScore">0</div>
     <div id="comboDisplay"></div>
+    <div id="wallBounceBar"><div id="wallBounceFill"></div></div>
   </div>
 
   <div id="gameOver" style="display:none;">
