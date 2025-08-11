@@ -5,8 +5,6 @@ const ctx = canvas.getContext('2d');
 const config = {
   wallBounceEnabledDefault: true,
   maxBounceCount: 5,
-  baseJumpVelocity: 520,
-  baseWallBounceSpeed: 380,
   wallSlideMaxDownSpeed: 120,
   ui: {
     barWidth: 18,
@@ -32,6 +30,9 @@ const game = { // WALL-BOUNCE
 
 const menu = document.getElementById('mainMenu'); // WALL-BOUNCE start menu renamed
 const startBtn = document.getElementById('startBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsMenu = document.getElementById('settingsMenu');
+const backBtn = document.getElementById('backBtn');
 const difficultySelect = document.getElementById('difficulty');
 const gameContainer = document.getElementById('gameContainer');
 const scoreDisplay = document.getElementById('currentScore');
@@ -48,17 +49,24 @@ updateSpeedLabel();
 toggleWallBounce.addEventListener('change', () => {
   game.settings.wallBounceEnabled = toggleWallBounce.checked;
   localStorage.setItem('wallBounceEnabled', game.settings.wallBounceEnabled);
-  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', streak=' + (player ? player.wallBounceCount : 0)); // WALL-BOUNCE
 });
 speedMinus.addEventListener('click', () => {
   game.settings.speedMultiplier = Math.max(0.5, game.settings.speedMultiplier - 0.5);
   updateSpeedLabel();
-  console.log('Speed x' + game.settings.speedMultiplier.toFixed(1)); // WALL-BOUNCE
 });
 speedPlus.addEventListener('click', () => {
   game.settings.speedMultiplier = Math.min(3, game.settings.speedMultiplier + 0.5);
   updateSpeedLabel();
-  console.log('Speed x' + game.settings.speedMultiplier.toFixed(1)); // WALL-BOUNCE
+});
+
+settingsBtn.addEventListener('click', () => {
+  menu.style.display = 'none';
+  settingsMenu.style.display = 'block';
+});
+
+backBtn.addEventListener('click', () => {
+  settingsMenu.style.display = 'none';
+  menu.style.display = 'block';
 });
 
 const backgroundImg = new Image();
@@ -66,7 +74,7 @@ backgroundImg.src = 'assets/Background.jpg';
 const stepImg = new Image();
 stepImg.src = 'assets/step.jpg';
 const characterImg = new Image();
-characterImg.src = 'assets/character.jpg';
+characterImg.src = 'assets/character.png';
 
 const difficulties = {
   easy: { platformWidth: 90, speed: 1.5 },
@@ -140,6 +148,7 @@ function initGame(diff) {
     isCombo: false, // WALL-BOUNCE
     wallBounceCount: 0, // WALL-BOUNCE
     wallContactDir: 0, // WALL-BOUNCE
+    lastBounceDir: 0, // WALL-BOUNCE prevent same-wall bounce
     rotation: 0, // WALL-BOUNCE flip rotation
     flipDir: 0, // WALL-BOUNCE flip direction
     flipping: false // WALL-BOUNCE flip state
@@ -147,20 +156,18 @@ function initGame(diff) {
   // WALL-BOUNCE methods
   player.tryWallBounce = function() {
     if (this.wallContactDir === 0) return false;
+    if (this.wallContactDir === this.lastBounceDir) return false;
     if (this.wallBounceCount < config.maxBounceCount) {
       this.wallBounceCount++;
     }
-    const mul = 1.5 + 0.5 * (this.wallBounceCount - 1);
-    const frame = 1 / 60;
-    this.vx = -this.wallContactDir * config.baseWallBounceSpeed * mul * frame * game.settings.speedMultiplier;
-    this.vy = -config.baseJumpVelocity * mul * frame * game.settings.speedMultiplier * 3;
+    this.lastBounceDir = this.wallContactDir;
+    this.vx = -this.wallContactDir * 4 * game.settings.speedMultiplier;
+    this.vy = -20 * 1.5 * game.settings.speedMultiplier;
     this.flipping = true;
     this.rotation = 0;
     this.flipDir = -this.wallContactDir;
-    console.log('Wall bounce streak', this.wallBounceCount); // WALL-BOUNCE
     return true;
   };
-  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', streak=' + player.wallBounceCount); // WALL-BOUNCE
   platforms = [];
   const num = Math.ceil(canvas.height / 100);
   platformSpacing = (canvas.height - platformHeight) / (num - 1);
@@ -267,9 +274,10 @@ function update(now) { // WALL-BOUNCE
     player.wallContactDir = 1;
   }
   if (game.settings.wallBounceEnabled && player.wallContactDir !== 0 && prevWallContact === 0) {
-    player.tryWallBounce();
-    autoJumpTimer = autoJumpInterval;
-    player.wallContactDir = 0;
+    if (player.tryWallBounce()) {
+      autoJumpTimer = autoJumpInterval;
+      player.wallContactDir = 0;
+    }
   }
 
   player.onGround = false;
@@ -285,6 +293,7 @@ function update(now) { // WALL-BOUNCE
       player.vy = 0;
       player.onGround = true;
       player.wallBounceCount = 0;
+      player.lastBounceDir = 0;
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
       if (skipped >= 3) {
@@ -550,6 +559,7 @@ newGameBtn.addEventListener('click', () => {
   const gameOverDiv = document.getElementById('gameOver');
   gameOverDiv.style.display = 'none';
   menu.style.display = 'block';
+  settingsMenu.style.display = 'none';
   gameContainer.style.display = 'none';
   document.getElementById('nickname').value = '';
   saveScoreBtn.disabled = false;

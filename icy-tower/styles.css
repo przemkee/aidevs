@@ -24,33 +24,41 @@ body {
   right: 0;
 }
 
-#mainMenu { /* WALL-BOUNCE renamed from #menu */
+.menu {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.9);
-  color: #000;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
   padding: 40px;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   z-index: 50;
   text-align: center;
 }
 
-#startBtn {
-  background: #4caf50;
-  color: #fff;
-  border: none;
+.menu-button {
+  display: block;
+  width: 200px;
+  margin: 10px auto;
   padding: 10px 20px;
   font-size: 1rem;
-  border-radius: 5px;
+  background: rgba(20, 20, 20, 0.8);
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 8px;
   cursor: pointer;
-  margin-top: 15px;
 }
 
-#startBtn:hover {
-  background: #45a049;
+.menu-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#logo {
+  display: block;
+  margin: 0 auto 20px;
+  max-width: 200px;
 }
 
 #gameContainer {
