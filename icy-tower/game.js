@@ -4,7 +4,7 @@ const ctx = canvas.getContext('2d');
 // WALL-BOUNCE: global configuration
 const config = {
   wallBounceEnabledDefault: true,
-  chargeMaxLevel: 5,
+  maxBounceCount: 5,
   baseJumpVelocity: 520,
   baseWallBounceSpeed: 380,
   wallSlideMaxDownSpeed: 120,
@@ -48,7 +48,7 @@ updateSpeedLabel();
 toggleWallBounce.addEventListener('change', () => {
   game.settings.wallBounceEnabled = toggleWallBounce.checked;
   localStorage.setItem('wallBounceEnabled', game.settings.wallBounceEnabled);
-  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', charge=' + (player ? player.chargeLevel : 0)); // WALL-BOUNCE
+  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', streak=' + (player ? player.wallBounceCount : 0)); // WALL-BOUNCE
 });
 speedMinus.addEventListener('click', () => {
   game.settings.speedMultiplier = Math.max(0.5, game.settings.speedMultiplier - 0.5);
@@ -138,25 +138,23 @@ function initGame(diff) {
     onGround: true,
     lastPlatformId: 0,
     isCombo: false, // WALL-BOUNCE
-    chargeLevel: 0, // WALL-BOUNCE
+    wallBounceCount: 0, // WALL-BOUNCE
     wallContactDir: 0 // WALL-BOUNCE
   };
   // WALL-BOUNCE methods
   player.tryWallBounce = function() {
     if (this.wallContactDir === 0) return false;
-    const L = this.chargeLevel;
-    const speedMul = Math.pow(1.5, L);
-    const heightMul = Math.pow(1.5, L);
-    const frame = 1 / 60;
-    this.vx = -this.wallContactDir * config.baseWallBounceSpeed * speedMul * frame * game.settings.speedMultiplier;
-    this.vy = -config.baseJumpVelocity * heightMul * frame * game.settings.speedMultiplier;
-    if (this.chargeLevel < config.chargeMaxLevel) {
-      this.chargeLevel++;
+    if (this.wallBounceCount < config.maxBounceCount) {
+      this.wallBounceCount++;
     }
-    console.log('Charge increased, level', this.chargeLevel); // WALL-BOUNCE
+    const mul = 1.5 + 0.5 * (this.wallBounceCount - 1);
+    const frame = 1 / 60;
+    this.vx = -this.wallContactDir * config.baseWallBounceSpeed * mul * frame * game.settings.speedMultiplier;
+    this.vy = -config.baseJumpVelocity * mul * frame * game.settings.speedMultiplier;
+    console.log('Wall bounce streak', this.wallBounceCount); // WALL-BOUNCE
     return true;
   };
-  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', charge=' + player.chargeLevel); // WALL-BOUNCE
+  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', streak=' + player.wallBounceCount); // WALL-BOUNCE
   platforms = [];
   const num = Math.ceil(canvas.height / 100);
   platformSpacing = (canvas.height - platformHeight) / (num - 1);
@@ -272,6 +270,7 @@ function update(now) { // WALL-BOUNCE
       player.y = plat.y - player.height;
       player.vy = 0;
       player.onGround = true;
+      player.wallBounceCount = 0;
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
       if (skipped >= 3) {
@@ -455,7 +454,7 @@ function draw() {
   ctx.lineWidth = borderWidth;
   ctx.strokeRect(player.x, player.y, player.width, player.height);
 
-  drawWallBar(); // WALL-BOUNCE
+  drawBounceBar(); // WALL-BOUNCE
 
   // score and combo are displayed using DOM elements
 }
@@ -473,19 +472,19 @@ function drawStar(x, y, r) {
   ctx.fill();
 }
 
-function drawWallBar() { // WALL-BOUNCE
+function drawBounceBar() { // WALL-BOUNCE
   if (!game.settings.wallBounceEnabled) return;
   const ui = config.ui;
   const x = canvas.width - ui.barRightPadding - ui.barWidth;
   const y = ui.barTopPadding;
   ctx.fillStyle = ui.colorBg;
   ctx.fillRect(x - 4, y - 4, ui.barWidth + 8, ui.barHeight + 8);
-  const segHeight = ui.barHeight / config.chargeMaxLevel;
-  for (let i = 0; i < config.chargeMaxLevel; i++) {
+  const segHeight = ui.barHeight / config.maxBounceCount;
+  for (let i = 0; i < config.maxBounceCount; i++) {
     const segY = y + ui.barHeight - (i + 1) * segHeight;
-    ctx.fillStyle = i < player.chargeLevel ? ui.colorSegFull : ui.colorSegEmpty;
+    ctx.fillStyle = i < player.wallBounceCount ? ui.colorSegFull : ui.colorSegEmpty;
     ctx.fillRect(x, segY, ui.barWidth, segHeight - 2);
-    if (i < player.chargeLevel) {
+    if (i < player.wallBounceCount) {
       ctx.fillStyle = ui.colorSegGlow;
       ctx.fillRect(x, segY, ui.barWidth, segHeight - 2);
     }
@@ -493,6 +492,7 @@ function drawWallBar() { // WALL-BOUNCE
   ctx.fillStyle = ui.labelColor;
   ctx.font = ui.font;
   ctx.fillText('WALL', x - 4, y - 6);
+  ctx.fillText(String(player.wallBounceCount), x + 2, y + ui.barHeight + 14);
 } // WALL-BOUNCE
 
 function showGameOverScreen() {
@@ -551,4 +551,4 @@ function loop(now) { // WALL-BOUNCE
   requestAnimationFrame(loop);
 }
 
-// WALL-BOUNCE: Test by jumping between two close walls to chain bounces and watch the charge bar refill.
+// WALL-BOUNCE: Test by jumping between two close walls to chain bounces and watch the bounce bar update.
