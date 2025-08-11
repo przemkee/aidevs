@@ -4,7 +4,13 @@ const ctx = canvas.getContext('2d');
 const menu = document.getElementById('menu');
 const startBtn = document.getElementById('startBtn');
 const difficultySelect = document.getElementById('difficulty');
-const faceInput = document.getElementById('faceInput');
+
+const backgroundImg = new Image();
+backgroundImg.src = 'assets/Background.jpg';
+const stepImg = new Image();
+stepImg.src = 'assets/step.jpg';
+const characterImg = new Image();
+characterImg.src = 'assets/character.jpg';
 
 const difficulties = {
   easy: { platformWidth: 90, speed: 1.5 },
@@ -12,18 +18,8 @@ const difficulties = {
   hard: { platformWidth: 50, speed: 3.5 }
 };
 
-let faceImg = new Image();
-faceInput.addEventListener('change', function() {
-  const file = this.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      faceImg = new Image();
-      faceImg.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-});
+const platformHeight = 20;
+const borderWidth = 2;
 
 startBtn.addEventListener('click', () => {
   menu.style.display = 'none';
@@ -53,9 +49,9 @@ function initGame(diff) {
   gameAreaX = (canvas.width - gameAreaWidth) / 2;
   player = {
     x: gameAreaX + gameAreaWidth / 2 - 20,
-    y: canvas.height - 80,
+    y: canvas.height - platformHeight - 90,
     width: 40,
-    height: 60,
+    height: 90,
     vx: 0,
     vy: 0,
     onGround: true,
@@ -63,20 +59,20 @@ function initGame(diff) {
   };
   platforms = [];
   const num = Math.ceil(canvas.height / 100);
-  platformSpacing = (canvas.height - 20) / (num - 1);
+  platformSpacing = (canvas.height - platformHeight) / (num - 1);
   platforms.push({
     x: gameAreaX,
-    y: canvas.height - 20,
+    y: canvas.height - platformHeight,
     width: gameAreaWidth,
-    height: 10,
+    height: platformHeight,
     id: 0
   });
   for (let i = 1; i < num; i++) {
     platforms.push({
       x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
-      y: canvas.height - 20 - i * platformSpacing,
+      y: canvas.height - platformHeight - i * platformSpacing,
       width: platformWidth,
-      height: 10,
+      height: platformHeight,
       id: i
     });
   }
@@ -209,7 +205,7 @@ function update() {
         x: gameAreaX + Math.random() * (gameAreaWidth - platformWidth),
         y: last.y - platformSpacing,
         width: platformWidth,
-        height: 10,
+        height: platformHeight,
         id: nextPlatformId++
       });
     }
@@ -222,24 +218,23 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (comboMultiplier > 1) {
-    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    grad.addColorStop(0, '#ff0000');
-    grad.addColorStop(0.17, '#ff7f00');
-    grad.addColorStop(0.33, '#ffff00');
-    grad.addColorStop(0.5, '#00ff00');
-    grad.addColorStop(0.67, '#0000ff');
-    grad.addColorStop(0.83, '#4b0082');
-    grad.addColorStop(1, '#8b00ff');
-    ctx.fillStyle = grad;
+  if (backgroundImg.complete) {
+    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
   } else {
     ctx.fillStyle = '#88f';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = '#555';
   for (let plat of platforms) {
-    ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    if (stepImg.complete) {
+      ctx.drawImage(stepImg, plat.x, plat.y, plat.width, plat.height);
+    } else {
+      ctx.fillStyle = '#555';
+      ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    }
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(plat.x, plat.y, plat.width, plat.height);
   }
 
   for (let star of stars) {
@@ -253,16 +248,15 @@ function draw() {
   ctx.lineWidth = 4;
   ctx.strokeRect(gameAreaX, 0, gameAreaWidth, canvas.height);
 
-  // draw player body
-  ctx.fillStyle = '#0a0';
-  ctx.fillRect(player.x, player.y + 30, player.width, player.height - 30);
-
-  if (faceImg && faceImg.complete) {
-    ctx.drawImage(faceImg, player.x, player.y, player.width, 30);
+  if (characterImg.complete) {
+    ctx.drawImage(characterImg, player.x, player.y, player.width, player.height);
   } else {
-    ctx.fillStyle = '#faa';
-    ctx.fillRect(player.x, player.y, player.width, 30);
+    ctx.fillStyle = '#0a0';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
   }
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = borderWidth;
+  ctx.strokeRect(player.x, player.y, player.width, player.height);
 
   ctx.fillStyle = '#000';
   ctx.font = '24px Arial';
