@@ -262,6 +262,11 @@ function update() {
     comboDisplay.style.color = 'red';
     comboDisplay.style.borderColor = 'red';
     boostTimer--;
+  } else if (comboMultiplier > 1) {
+    comboDisplay.style.display = 'block';
+    comboDisplay.textContent = `KOMBO x${comboMultiplier}`;
+    comboDisplay.style.color = 'yellow';
+    comboDisplay.style.borderColor = 'yellow';
   } else {
     comboDisplay.style.display = 'none';
   }
