@@ -13,7 +13,6 @@
     <li>Złote obręcze: +1000 pkt</li>
     <li>Kombos: pomiń ≥3 platformy, mnożnik rośnie co kilka długich skoków</li>
     <li>Boost: wyższy skok przy mnożniku ≥4</li>
-    <li>Odbicia od ścian: tylko w kombosie, nie dwa razy z rzędu</li>
   </ul>
 </div>
   <div id="scoreboard">
@@ -34,12 +33,6 @@
           </select>
         </label>
       </div>
-      <div>
-        <label>
-          <input type="checkbox" id="wallBounceToggle" checked />
-          Odbicia od ścian
-        </label>
-      </div>
       <button id="startBtn">Start</button>
     </div>
 
@@ -47,7 +40,6 @@
     <canvas id="game"></canvas>
     <div id="currentScore">0</div>
     <div id="comboDisplay"></div>
-    <div id="wallBounceBar"><div id="wallBounceFill"></div></div>
   </div>
 
   <div id="gameOver" style="display:none;">
