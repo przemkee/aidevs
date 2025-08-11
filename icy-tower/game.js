@@ -38,6 +38,7 @@ const gameContainer = document.getElementById('gameContainer');
 const scoreDisplay = document.getElementById('currentScore');
 const comboDisplay = document.getElementById('comboDisplay');
 const scoreTable = document.getElementById('scoreTable');
+const optionsMenu = document.getElementById('menu');
 
 // WALL-BOUNCE: option controls
 const toggleWallBounce = document.getElementById('toggleWallBounce');
@@ -96,6 +97,7 @@ updateScoreboard();
 
 function startGame() {
   menu.style.display = 'none';
+  optionsMenu.style.display = 'none';
   gameContainer.style.display = 'block';
   canvas.width = 600;
   canvas.height = window.innerHeight;
@@ -321,7 +323,15 @@ function update(now) { // WALL-BOUNCE
     if (player.y < canvas.height / 2) {
       const diffY = canvas.height / 2 - player.y;
       player.y = canvas.height / 2;
-      scroll += diffY;
+      for (let plat of platforms) {
+        plat.y += diffY;
+      }
+      for (let star of stars) {
+        star.y += diffY;
+      }
+      for (let ring of rings) {
+        ring.y += diffY;
+      }
     }
     for (let plat of platforms) {
       plat.y += scroll;
@@ -530,6 +540,7 @@ newGameBtn.addEventListener('click', () => {
   const gameOverDiv = document.getElementById('gameOver');
   gameOverDiv.style.display = 'none';
   menu.style.display = 'block';
+  optionsMenu.style.display = 'block';
   gameContainer.style.display = 'none';
   document.getElementById('nickname').value = '';
   saveScoreBtn.disabled = false;
