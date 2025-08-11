@@ -81,7 +81,7 @@ let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
 let stars, rings;
 let longJumpReady;
 let boostActive;
-let wallBounceEnabled, wallBounceCount;
+let wallBounceEnabled, wallBounceCount, lastWallSide;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -138,6 +138,7 @@ function initGame(diff) {
   score = 0;
   boostActive = false;
   wallBounceCount = 0;
+  lastWallSide = null;
   wallBounceBar.style.display = wallBounceEnabled ? 'block' : 'none';
   updateBounceBar();
   scoreDisplay.style.color = '#fff';
@@ -180,11 +181,11 @@ function update() {
   // boundaries
   if (player.x < gameAreaX) {
     player.x = gameAreaX;
-    if (wallBounceEnabled && !player.onGround) handleWallBounce(true);
+    if (wallBounceEnabled && !player.onGround && comboMultiplier > 1) handleWallBounce(true);
   }
   if (player.x + player.width > gameAreaX + gameAreaWidth) {
     player.x = gameAreaX + gameAreaWidth - player.width;
-    if (wallBounceEnabled && !player.onGround) handleWallBounce(false);
+    if (wallBounceEnabled && !player.onGround && comboMultiplier > 1) handleWallBounce(false);
   }
 
   player.onGround = false;
@@ -239,6 +240,7 @@ function update() {
       wallBounceCount = 0;
       updateBounceBar();
     }
+    lastWallSide = null;
   }
 
   if (gameStarted) {
@@ -395,8 +397,11 @@ function drawStar(x, y, r) {
 
 function handleWallBounce(isLeft) {
   if (player.wallBounceTimer > 0) return;
+  const side = isLeft ? 'left' : 'right';
+  if (lastWallSide === side) return;
+  lastWallSide = side;
   const dir = isLeft ? 1 : -1;
-  player.vx = dir * 4;
+  player.vx = dir * 8;
   player.vy = -20;
   player.wallBounceTimer = 5;
   if (wallBounceCount < maxWallBounceLevel) {
