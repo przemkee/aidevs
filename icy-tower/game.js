@@ -71,7 +71,7 @@ document.addEventListener('keydown', e => {
 });
 
 const gravity = 0.5;
-const jumpSpeed = 20;
+const jumpSpeed = 80;
 let platformWidth = 90;
 let speed = 2;
 
