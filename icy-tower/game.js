@@ -7,8 +7,6 @@ const difficultySelect = document.getElementById('difficulty');
 const gameContainer = document.getElementById('gameContainer');
 const scoreDisplay = document.getElementById('currentScore');
 const comboDisplay = document.getElementById('comboDisplay');
-const wallBounceBar = document.getElementById('wallBounceBar');
-const wallBounceFill = document.getElementById('wallBounceFill');
 const scoreTable = document.getElementById('scoreTable');
 
 const backgroundImg = new Image();
@@ -27,15 +25,6 @@ const difficulties = {
 const platformHeight = 20;
 const borderWidth = 2;
 const ringRadius = 15;
-const maxWallBounceLevel = 5;
-const rainbowGradients = [
-  'transparent',
-  'red',
-  'linear-gradient(red,orange)',
-  'linear-gradient(red,orange,yellow)',
-  'linear-gradient(red,orange,yellow,green)',
-  'linear-gradient(red,orange,yellow,green,blue)'
-];
 
 function updateScoreboard() {
   let scores;
@@ -57,7 +46,6 @@ function startGame() {
   canvas.width = 600;
   canvas.height = window.innerHeight;
   const diff = difficulties[difficultySelect.value];
-  wallBounceEnabled = document.getElementById('wallBounceToggle').checked;
   initGame(diff);
   requestAnimationFrame(loop);
 }
@@ -70,17 +58,9 @@ document.addEventListener('keydown', e => {
   }
 });
 
-const gravity = 8;
-const jumpSpeed = 80;
+const gravity = 0.5;
 let platformWidth = 90;
 let speed = 2;
-
-// Movement tuning
-const groundAcceleration = 0.5;
-const airAcceleration = 0.5;
-const groundFriction = 0.8;
-const maxGroundSpeed = 4;
-const maxAirSpeed = 6;
 
 let player, platforms, keys, gameOver, gameStarted, score;
 let gameOverDisplayed = false;
@@ -88,9 +68,7 @@ let gameAreaWidth, gameAreaX;
 let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
 let stars, rings;
 let longJumpReady;
-let boostActive;
-let wallBounceEnabled, wallBounceCount, lastWallSide;
-let bounceSpeedBoost;
+let boostTimer;
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -105,8 +83,7 @@ function initGame(diff) {
     vx: 0,
     vy: 0,
     onGround: true,
-    lastPlatformId: 0,
-    wallBounceTimer: 0
+    lastPlatformId: 0
   };
   platforms = [];
   const num = Math.ceil(canvas.height / 100);
@@ -145,12 +122,7 @@ function initGame(diff) {
   gameOver = false;
   gameStarted = false;
   score = 0;
-  boostActive = false;
-  wallBounceCount = 0;
-  lastWallSide = null;
-  bounceSpeedBoost = 1;
-  wallBounceBar.style.display = wallBounceEnabled ? 'block' : 'none';
-  updateBounceBar();
+  boostTimer = 0;
   scoreDisplay.style.color = '#fff';
   gameOverDisplayed = false;
 }
@@ -164,20 +136,9 @@ document.addEventListener('keyup', e => {
 });
 
 function update() {
-  if (player.wallBounceTimer > 0) {
-    player.wallBounceTimer--;
-  }
-
-  const inputX = (keys['ArrowLeft'] ? -1 : 0) + (keys['ArrowRight'] ? 1 : 0);
-  const accel = (player.onGround ? groundAcceleration : airAcceleration) * bounceSpeedBoost;
-  player.vx += inputX * accel;
-  const maxSpeed = (player.onGround ? maxGroundSpeed : maxAirSpeed) * bounceSpeedBoost;
-  if (player.vx > maxSpeed) player.vx = maxSpeed;
-  if (player.vx < -maxSpeed) player.vx = -maxSpeed;
-  if (player.onGround && inputX === 0) {
-    player.vx *= groundFriction;
-    if (Math.abs(player.vx) < 0.1) player.vx = 0;
-  }
+  if (keys['ArrowLeft']) player.vx = -4;
+  else if (keys['ArrowRight']) player.vx = 4;
+  else player.vx = 0;
 
   if (keys['Space'] && player.onGround) {
     let heightBoost = 1;
@@ -185,8 +146,7 @@ function update() {
       heightBoost = comboMultiplier / 2;
       longJumpReady = false;
     }
-    player.vy = -jumpSpeed * heightBoost;
-    boostActive = heightBoost > 1;
+    player.vy = -20 * heightBoost;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
   }
@@ -196,13 +156,9 @@ function update() {
   player.y += player.vy;
 
   // boundaries
-  if (player.x < gameAreaX) {
-    player.x = gameAreaX;
-    if (wallBounceEnabled && !player.onGround && comboMultiplier > 1) handleWallBounce(true);
-  }
+  if (player.x < gameAreaX) player.x = gameAreaX;
   if (player.x + player.width > gameAreaX + gameAreaWidth) {
     player.x = gameAreaX + gameAreaWidth - player.width;
-    if (wallBounceEnabled && !player.onGround && comboMultiplier > 1) handleWallBounce(false);
   }
 
   player.onGround = false;
@@ -220,6 +176,7 @@ function update() {
       const jumped = plat.id - player.lastPlatformId;
       const skipped = jumped - 1; // number of platforms skipped in this jump
       if (skipped >= 3) {
+        boostTimer = 60;
         if (comboMultiplier === 1) {
           // first long jump starts the combo at x2
           comboMultiplier = 2;
@@ -249,16 +206,6 @@ function update() {
       }
       player.lastPlatformId = plat.id;
     }
-  }
-
-  if (player.onGround) {
-    boostActive = false;
-    bounceSpeedBoost = 1;
-    if (wallBounceEnabled && wallBounceCount) {
-      wallBounceCount = 0;
-      updateBounceBar();
-    }
-    lastWallSide = null;
   }
 
   if (gameStarted) {
@@ -309,11 +256,12 @@ function update() {
   }
 
   scoreDisplay.textContent = score;
-  if (boostActive) {
+  if (boostTimer > 0) {
     comboDisplay.style.display = 'block';
     comboDisplay.textContent = 'BOOST!';
     comboDisplay.style.color = 'red';
     comboDisplay.style.borderColor = 'red';
+    boostTimer--;
   } else if (comboMultiplier > 1) {
     comboDisplay.style.display = 'block';
     comboDisplay.textContent = `KOMBO x${comboMultiplier}`;
@@ -411,35 +359,6 @@ function drawStar(x, y, r) {
   }
   ctx.closePath();
   ctx.fill();
-}
-
-function handleWallBounce(isLeft) {
-  if (player.wallBounceTimer > 0) return;
-  const side = isLeft ? 'left' : 'right';
-  if (lastWallSide === side) return;
-  lastWallSide = side;
-  const dir = isLeft ? 1 : -1;
-  const prevVy = player.vy;
-  player.vy = -jumpSpeed + gravity;
-  player.y += player.vy - prevVy;
-  const timeToGround = (-player.vy * 2) / gravity;
-  player.vx = dir * 0.75 * gameAreaWidth / timeToGround * 2;
-  bounceSpeedBoost = 2;
-  player.wallBounceTimer = 5;
-  if (wallBounceCount < maxWallBounceLevel) {
-    wallBounceCount++;
-  }
-  updateBounceBar();
-}
-
-function updateBounceBar() {
-  if (!wallBounceEnabled) {
-    wallBounceBar.style.display = 'none';
-    return;
-  }
-  wallBounceBar.style.display = 'block';
-  wallBounceFill.style.height = (wallBounceCount / maxWallBounceLevel) * 100 + '%';
-  wallBounceFill.style.background = rainbowGradients[wallBounceCount];
 }
 
 function showGameOverScreen() {
