@@ -96,7 +96,8 @@ function initGame(diff) {
     vx: 0,
     vy: 0,
     onGround: true,
-    lastPlatformId: 0
+    lastPlatformId: 0,
+    wallBounceTimer: 0
   };
   platforms = [];
   const num = Math.ceil(canvas.height / 100);
@@ -152,9 +153,13 @@ document.addEventListener('keyup', e => {
 });
 
 function update() {
-  if (keys['ArrowLeft']) player.vx = -4;
-  else if (keys['ArrowRight']) player.vx = 4;
-  else player.vx = 0;
+  if (player.wallBounceTimer > 0) {
+    player.wallBounceTimer--;
+  } else {
+    if (keys['ArrowLeft']) player.vx = -4;
+    else if (keys['ArrowRight']) player.vx = 4;
+    else player.vx = 0;
+  }
 
   if (keys['Space'] && player.onGround) {
     let heightBoost = 1;
@@ -389,13 +394,13 @@ function drawStar(x, y, r) {
 }
 
 function handleWallBounce(isLeft) {
+  if (player.wallBounceTimer > 0) return;
   const dir = isLeft ? 1 : -1;
+  player.vx = dir * 4;
+  player.vy = -20;
+  player.wallBounceTimer = 5;
   if (wallBounceCount < maxWallBounceLevel) {
-    player.vx = dir * Math.abs(player.vx) * 1.1;
-    if (player.vy < 0) player.vy *= 1.1;
     wallBounceCount++;
-  } else {
-    player.vx = dir * Math.abs(player.vx);
   }
   updateBounceBar();
 }
