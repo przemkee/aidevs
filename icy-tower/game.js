@@ -4,6 +4,10 @@ const ctx = canvas.getContext('2d');
 const menu = document.getElementById('menu');
 const startBtn = document.getElementById('startBtn');
 const difficultySelect = document.getElementById('difficulty');
+const gameContainer = document.getElementById('gameContainer');
+const scoreDisplay = document.getElementById('currentScore');
+const comboDisplay = document.getElementById('comboDisplay');
+const scoreTable = document.getElementById('scoreTable');
 
 const backgroundImg = new Image();
 backgroundImg.src = 'assets/Background.jpg';
@@ -21,14 +25,36 @@ const difficulties = {
 const platformHeight = 20;
 const borderWidth = 2;
 
-startBtn.addEventListener('click', () => {
+function updateScoreboard() {
+  let scores;
+  try {
+    scores = JSON.parse(localStorage.getItem('scores')) || [];
+  } catch (e) {
+    scores = [];
+  }
+  scoreTable.textContent = scores
+    .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
+    .join('\n');
+}
+
+updateScoreboard();
+
+function startGame() {
   menu.style.display = 'none';
-  canvas.style.display = 'block';
-  canvas.width = window.innerWidth;
+  gameContainer.style.display = 'block';
+  canvas.width = 600;
   canvas.height = window.innerHeight;
   const diff = difficulties[difficultySelect.value];
   initGame(diff);
   requestAnimationFrame(loop);
+}
+
+startBtn.addEventListener('click', startGame);
+
+document.addEventListener('keydown', e => {
+  if (menu.style.display !== 'none' && e.code === 'Space') {
+    startGame();
+  }
 });
 
 const gravity = 0.5;
@@ -196,6 +222,14 @@ function update() {
     if (stars[i].life <= 0) stars.splice(i, 1);
   }
 
+  scoreDisplay.textContent = score;
+  if (comboMultiplier > 1) {
+    comboDisplay.style.display = 'block';
+    comboDisplay.textContent = `Combo x${comboMultiplier}!`;
+  } else {
+    comboDisplay.style.display = 'none';
+  }
+
   // spawn new platforms
   if (gameStarted) {
     while (platforms.length && platforms[0].y > canvas.height) {
@@ -258,13 +292,7 @@ function draw() {
   ctx.lineWidth = borderWidth;
   ctx.strokeRect(player.x, player.y, player.width, player.height);
 
-  ctx.fillStyle = '#000';
-  ctx.font = '24px Arial';
-  ctx.textAlign = 'right';
-  ctx.fillText(`Score: ${score}`, canvas.width - 20, 30);
-  if (comboMultiplier > 1) {
-    ctx.fillText(`Combo x${comboMultiplier}!`, canvas.width - 20, 60);
-  }
+  // score and combo are displayed using DOM elements
 }
 
 function drawStar(x, y, r) {
@@ -283,18 +311,9 @@ function drawStar(x, y, r) {
 function showGameOverScreen() {
   const gameOverDiv = document.getElementById('gameOver');
   const finalScore = document.getElementById('finalScore');
-  const scoreTable = document.getElementById('scoreTable');
 
   finalScore.textContent = `Gratulacje! Twój wynik: ${score}`;
-  let scores;
-  try {
-    scores = JSON.parse(localStorage.getItem('scores')) || [];
-  } catch (e) {
-    scores = [];
-  }
-  scoreTable.textContent = scores
-    .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
-    .join('\n');
+  updateScoreboard();
   gameOverDiv.style.display = 'flex';
 }
 
@@ -312,9 +331,7 @@ saveScoreBtn.addEventListener('click', () => {
   scores.push({ name: nick, score });
   scores.sort((a, b) => b.score - a.score);
   localStorage.setItem('scores', JSON.stringify(scores));
-  scoreTable.textContent = scores
-    .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
-    .join('\n');
+  updateScoreboard();
   const blob = new Blob([scoreTable.textContent], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -328,7 +345,7 @@ newGameBtn.addEventListener('click', () => {
   const gameOverDiv = document.getElementById('gameOver');
   gameOverDiv.style.display = 'none';
   menu.style.display = 'block';
-  canvas.style.display = 'none';
+  gameContainer.style.display = 'none';
   document.getElementById('nickname').value = '';
   saveScoreBtn.disabled = false;
 });
