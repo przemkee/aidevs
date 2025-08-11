@@ -1,13 +1,67 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-const menu = document.getElementById('menu');
+// WALL-BOUNCE: global configuration
+const config = {
+  wallBounceEnabledDefault: true,
+  chargeMaxLevel: 5,
+  chargeTickMs: 350,
+  baseJumpVelocity: 520,
+  baseWallBounceSpeed: 380,
+  wallSlideMaxDownSpeed: 120,
+  ui: {
+    barWidth: 18,
+    barHeight: 180,
+    barRightPadding: 12,
+    barTopPadding: 24,
+    colorBg: 'rgba(20,20,20,0.6)',
+    colorSegEmpty: 'rgba(80,80,80,0.7)',
+    colorSegFull: '#ff6a00',
+    colorSegGlow: 'rgba(255,110,0,0.35)',
+    labelColor: '#ffffff',
+    font: '12px monospace'
+  }
+};
+
+const savedSetting = localStorage.getItem('wallBounceEnabled'); // WALL-BOUNCE
+const game = { // WALL-BOUNCE
+  settings: {
+    wallBounceEnabled: savedSetting !== null ? JSON.parse(savedSetting) : config.wallBounceEnabledDefault,
+    speedMultiplier: 1
+  }
+};
+
+const menu = document.getElementById('mainMenu'); // WALL-BOUNCE start menu renamed
 const startBtn = document.getElementById('startBtn');
 const difficultySelect = document.getElementById('difficulty');
 const gameContainer = document.getElementById('gameContainer');
 const scoreDisplay = document.getElementById('currentScore');
 const comboDisplay = document.getElementById('comboDisplay');
 const scoreTable = document.getElementById('scoreTable');
+
+// WALL-BOUNCE: option controls
+const toggleWallBounce = document.getElementById('toggleWallBounce');
+const speedMinus = document.getElementById('speedMinus');
+const speedPlus = document.getElementById('speedPlus');
+const speedValue = document.getElementById('speedValue');
+toggleWallBounce.checked = game.settings.wallBounceEnabled;
+function updateSpeedLabel() { speedValue.textContent = game.settings.speedMultiplier.toFixed(1) + 'x'; }
+updateSpeedLabel();
+toggleWallBounce.addEventListener('change', () => {
+  game.settings.wallBounceEnabled = toggleWallBounce.checked;
+  localStorage.setItem('wallBounceEnabled', game.settings.wallBounceEnabled);
+  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', charge=' + (player ? player.chargeLevel : 0)); // WALL-BOUNCE
+});
+speedMinus.addEventListener('click', () => {
+  game.settings.speedMultiplier = Math.max(0.5, game.settings.speedMultiplier - 0.5);
+  updateSpeedLabel();
+  console.log('Speed x' + game.settings.speedMultiplier.toFixed(1)); // WALL-BOUNCE
+});
+speedPlus.addEventListener('click', () => {
+  game.settings.speedMultiplier = Math.min(3, game.settings.speedMultiplier + 0.5);
+  updateSpeedLabel();
+  console.log('Speed x' + game.settings.speedMultiplier.toFixed(1)); // WALL-BOUNCE
+});
 
 const backgroundImg = new Image();
 backgroundImg.src = 'assets/Background.jpg';
@@ -69,6 +123,7 @@ let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
 let stars, rings;
 let longJumpReady;
 let boostTimer;
+let prevKeys = {}; // WALL-BOUNCE
 
 function initGame(diff) {
   platformWidth = diff.platformWidth;
@@ -83,8 +138,34 @@ function initGame(diff) {
     vx: 0,
     vy: 0,
     onGround: true,
-    lastPlatformId: 0
+    lastPlatformId: 0,
+    isCombo: false, // WALL-BOUNCE
+    chargeLevel: 0, // WALL-BOUNCE
+    lastChargeTick: 0, // WALL-BOUNCE
+    wallContactDir: 0 // WALL-BOUNCE
   };
+  // WALL-BOUNCE methods
+  player.updateComboCharge = function(now) {
+    if (!game.settings.wallBounceEnabled || !this.isCombo) return;
+    if (now - this.lastChargeTick >= config.chargeTickMs) {
+      this.chargeLevel = Math.min(config.chargeMaxLevel, this.chargeLevel + 1);
+      this.lastChargeTick = now;
+      console.log('Charge level', this.chargeLevel); // WALL-BOUNCE
+    }
+  };
+  player.tryWallBounce = function() {
+    if (this.wallContactDir === 0) return false;
+    const L = this.chargeLevel;
+    const speedMul = Math.pow(1.5, L);
+    const heightMul = Math.pow(1.5, L);
+    const frame = 1 / 60;
+    this.vx = -this.wallContactDir * config.baseWallBounceSpeed * speedMul * frame * game.settings.speedMultiplier;
+    this.vy = -config.baseJumpVelocity * heightMul * frame * game.settings.speedMultiplier;
+    this.chargeLevel = 0;
+    console.log('Charge used, level', this.chargeLevel); // WALL-BOUNCE
+    return true;
+  };
+  console.log('Wall bounce ' + (game.settings.wallBounceEnabled ? 'enabled' : 'disabled') + ', charge=' + player.chargeLevel); // WALL-BOUNCE
   platforms = [];
   const num = Math.ceil(canvas.height / 100);
   platformSpacing = (canvas.height - platformHeight) / (num - 1);
@@ -119,6 +200,7 @@ function initGame(diff) {
   longJumpReady = false;
   stars = [];
   keys = {};
+  prevKeys = {}; // WALL-BOUNCE
   gameOver = false;
   gameStarted = false;
   score = 0;
@@ -135,30 +217,56 @@ document.addEventListener('keyup', e => {
   keys[e.code] = false;
 });
 
-function update() {
-  if (keys['ArrowLeft']) player.vx = -4;
-  else if (keys['ArrowRight']) player.vx = 4;
+function update(now) { // WALL-BOUNCE
+  const left = keys['ArrowLeft'] || keys['KeyA']; // WALL-BOUNCE
+  const right = keys['ArrowRight'] || keys['KeyD']; // WALL-BOUNCE
+  const jumpJustPressed = keys['Space'] && !prevKeys['Space']; // WALL-BOUNCE
+  prevKeys['Space'] = keys['Space']; // WALL-BOUNCE
+
+  player.isCombo = comboMultiplier > 1; // WALL-BOUNCE
+  player.updateComboCharge(now); // WALL-BOUNCE
+
+  if (left) player.vx = -4 * game.settings.speedMultiplier;
+  else if (right) player.vx = 4 * game.settings.speedMultiplier;
   else player.vx = 0;
 
-  if (keys['Space'] && player.onGround) {
+  let wallBounced = false; // WALL-BOUNCE
+  if (jumpJustPressed && player.wallContactDir !== 0 && player.isCombo && game.settings.wallBounceEnabled) {
+    wallBounced = player.tryWallBounce(); // WALL-BOUNCE
+  }
+
+  if (jumpJustPressed && player.onGround && !wallBounced) {
     let heightBoost = 1;
     if (longJumpReady && comboMultiplier >= 4) {
       heightBoost = comboMultiplier / 2;
       longJumpReady = false;
     }
-    player.vy = -20 * heightBoost;
+    player.vy = -20 * heightBoost * game.settings.speedMultiplier;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
   }
 
-  player.vy += gravity;
+  player.vy += gravity * game.settings.speedMultiplier;
+
+  if (player.wallContactDir !== 0) { // WALL-BOUNCE slide
+    if ((player.wallContactDir === -1 && left) || (player.wallContactDir === 1 && right)) {
+      const maxDown = (config.wallSlideMaxDownSpeed / 60) * game.settings.speedMultiplier;
+      player.vy = Math.min(player.vy, maxDown);
+    }
+  }
+
   player.x += player.vx;
   player.y += player.vy;
 
-  // boundaries
-  if (player.x < gameAreaX) player.x = gameAreaX;
+  // boundaries and wall contact // WALL-BOUNCE
+  player.wallContactDir = 0; // WALL-BOUNCE
+  if (player.x < gameAreaX) {
+    player.x = gameAreaX;
+    player.wallContactDir = -1; // WALL-BOUNCE
+  }
   if (player.x + player.width > gameAreaX + gameAreaWidth) {
     player.x = gameAreaX + gameAreaWidth - player.width;
+    player.wallContactDir = 1; // WALL-BOUNCE
   }
 
   player.onGround = false;
@@ -209,7 +317,7 @@ function update() {
   }
 
   if (gameStarted) {
-    let scroll = speed;
+    let scroll = speed * game.settings.speedMultiplier; // WALL-BOUNCE speed control
     if (player.y < canvas.height / 2) {
       const diffY = canvas.height / 2 - player.y;
       player.y = canvas.height / 2;
@@ -345,6 +453,8 @@ function draw() {
   ctx.lineWidth = borderWidth;
   ctx.strokeRect(player.x, player.y, player.width, player.height);
 
+  drawWallBar(); // WALL-BOUNCE
+
   // score and combo are displayed using DOM elements
 }
 
@@ -360,6 +470,28 @@ function drawStar(x, y, r) {
   ctx.closePath();
   ctx.fill();
 }
+
+function drawWallBar() { // WALL-BOUNCE
+  if (!game.settings.wallBounceEnabled) return;
+  const ui = config.ui;
+  const x = canvas.width - ui.barRightPadding - ui.barWidth;
+  const y = ui.barTopPadding;
+  ctx.fillStyle = ui.colorBg;
+  ctx.fillRect(x - 4, y - 4, ui.barWidth + 8, ui.barHeight + 8);
+  const segHeight = ui.barHeight / config.chargeMaxLevel;
+  for (let i = 0; i < config.chargeMaxLevel; i++) {
+    const segY = y + ui.barHeight - (i + 1) * segHeight;
+    ctx.fillStyle = i < player.chargeLevel ? ui.colorSegFull : ui.colorSegEmpty;
+    ctx.fillRect(x, segY, ui.barWidth, segHeight - 2);
+    if (i < player.chargeLevel) {
+      ctx.fillStyle = ui.colorSegGlow;
+      ctx.fillRect(x, segY, ui.barWidth, segHeight - 2);
+    }
+  }
+  ctx.fillStyle = ui.labelColor;
+  ctx.font = ui.font;
+  ctx.fillText('WALL', x - 4, y - 6);
+} // WALL-BOUNCE
 
 function showGameOverScreen() {
   const gameOverDiv = document.getElementById('gameOver');
@@ -403,7 +535,7 @@ newGameBtn.addEventListener('click', () => {
   saveScoreBtn.disabled = false;
 });
 
-function loop() {
+function loop(now) { // WALL-BOUNCE
   if (gameOver) {
     if (!gameOverDisplayed) {
       draw();
@@ -412,7 +544,9 @@ function loop() {
     }
     return;
   }
-  update();
+  update(now); // WALL-BOUNCE
   draw();
   requestAnimationFrame(loop);
 }
+
+// WALL-BOUNCE: Test by jumping between two close walls to chain bounces and watch the charge bar refill.
