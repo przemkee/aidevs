@@ -9,7 +9,7 @@
   <div id="instructions">
   <ul>
     <li>Strzałki – ruch</li>
-    <li>Spacja – skok</li>
+    <li>Skok odbywa się automatycznie</li>
     <li>Złote obręcze: +1000 pkt</li>
     <li>Kombos: pomiń ≥3 platformy, mnożnik rośnie co kilka długich skoków</li>
     <li>Boost: wyższy skok przy mnożniku ≥4</li>
@@ -18,18 +18,6 @@
   <div id="scoreboard">
     <h2>Tabela wyników:</h2>
     <pre id="scoreTable"></pre>
-  </div>
-
-  <div id="menu"><!-- WALL-BOUNCE options panel -->
-    <label>
-      <input type="checkbox" id="toggleWallBounce" />
-      Odbijanie od ścian
-    </label>
-    <div id="speedControl">
-      <button id="speedMinus">-</button>
-      <span id="speedValue">1x</span>
-      <button id="speedPlus">+</button>
-    </div>
   </div>
 
     <div id="mainMenu"><!-- WALL-BOUNCE renamed from menu -->
@@ -44,6 +32,15 @@
             <option value="hard">Trudna</option>
           </select>
         </label>
+      </div>
+      <label>
+        <input type="checkbox" id="toggleWallBounce" />
+        Odbijanie od ścian
+      </label>
+      <div id="speedControl">
+        <button id="speedMinus">-</button>
+        <span id="speedValue">1x</span>
+        <button id="speedPlus">+</button>
       </div>
       <button id="startBtn">Start</button>
     </div>

@@ -149,23 +149,6 @@ body {
   background: #1976d2;
 }
 
-#menu { /* WALL-BOUNCE */
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  padding: 8px;
-  font-size: 12px;
-  z-index: 150;
-}
-
-#menu label { /* WALL-BOUNCE */
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 #speedControl { /* WALL-BOUNCE */
   margin-top: 4px;
   display: flex;

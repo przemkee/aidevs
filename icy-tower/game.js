@@ -37,8 +37,6 @@ const gameContainer = document.getElementById('gameContainer');
 const scoreDisplay = document.getElementById('currentScore');
 const comboDisplay = document.getElementById('comboDisplay');
 const scoreTable = document.getElementById('scoreTable');
-const optionsMenu = document.getElementById('menu');
-
 // WALL-BOUNCE: option controls
 const toggleWallBounce = document.getElementById('toggleWallBounce');
 const speedMinus = document.getElementById('speedMinus');
@@ -96,7 +94,6 @@ updateScoreboard();
 
 function startGame() {
   menu.style.display = 'none';
-  optionsMenu.style.display = 'none';
   gameContainer.style.display = 'block';
   canvas.width = 600;
   canvas.height = window.innerHeight;
@@ -124,8 +121,8 @@ let platformSpacing, nextPlatformId, comboMultiplier, comboHits;
 let stars, rings;
 let longJumpReady;
 let boostTimer;
-let prevKeys = {}; // WALL-BOUNCE
-
+let autoJumpTimer = 0;
+const autoJumpInterval = 30;
 function initGame(diff) {
   platformWidth = diff.platformWidth;
   speed = diff.speed;
@@ -194,13 +191,13 @@ function initGame(diff) {
   longJumpReady = false;
   stars = [];
   keys = {};
-  prevKeys = {}; // WALL-BOUNCE
   gameOver = false;
   gameStarted = false;
   score = 0;
   boostTimer = 0;
   scoreDisplay.style.color = '#fff';
   gameOverDisplayed = false;
+  autoJumpTimer = 0;
 }
 
 document.addEventListener('keydown', e => {
@@ -214,21 +211,13 @@ document.addEventListener('keyup', e => {
 function update(now) { // WALL-BOUNCE
   const left = keys['ArrowLeft'] || keys['KeyA']; // WALL-BOUNCE
   const right = keys['ArrowRight'] || keys['KeyD']; // WALL-BOUNCE
-  const jumpJustPressed = keys['Space'] && !prevKeys['Space']; // WALL-BOUNCE
-  prevKeys['Space'] = keys['Space']; // WALL-BOUNCE
-
   player.isCombo = comboMultiplier > 1; // WALL-BOUNCE
 
   if (left) player.vx = -4 * game.settings.speedMultiplier;
   else if (right) player.vx = 4 * game.settings.speedMultiplier;
   else player.vx = 0;
 
-  let wallBounced = false; // WALL-BOUNCE
-  if (jumpJustPressed && player.wallContactDir !== 0 && player.isCombo && game.settings.wallBounceEnabled) {
-    wallBounced = player.tryWallBounce(); // WALL-BOUNCE
-  }
-
-  if (jumpJustPressed && player.onGround && !wallBounced) {
+  if (player.onGround && autoJumpTimer <= 0) {
     let heightBoost = 1;
     if (longJumpReady && comboMultiplier >= 4) {
       heightBoost = comboMultiplier / 2;
@@ -237,6 +226,9 @@ function update(now) { // WALL-BOUNCE
     player.vy = -20 * heightBoost * game.settings.speedMultiplier;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
+    autoJumpTimer = autoJumpInterval;
+  } else {
+    autoJumpTimer--;
   }
 
   player.vy += gravity * game.settings.speedMultiplier;
@@ -251,15 +243,21 @@ function update(now) { // WALL-BOUNCE
   player.x += player.vx;
   player.y += player.vy;
 
-  // boundaries and wall contact // WALL-BOUNCE
-  player.wallContactDir = 0; // WALL-BOUNCE
+  // boundaries and wall contact with automatic bounce // WALL-BOUNCE
+  const prevWallContact = player.wallContactDir;
+  player.wallContactDir = 0;
   if (player.x < gameAreaX) {
     player.x = gameAreaX;
-    player.wallContactDir = -1; // WALL-BOUNCE
+    player.wallContactDir = -1;
   }
   if (player.x + player.width > gameAreaX + gameAreaWidth) {
     player.x = gameAreaX + gameAreaWidth - player.width;
-    player.wallContactDir = 1; // WALL-BOUNCE
+    player.wallContactDir = 1;
+  }
+  if (game.settings.wallBounceEnabled && player.wallContactDir !== 0 && prevWallContact === 0) {
+    player.tryWallBounce();
+    autoJumpTimer = autoJumpInterval;
+    player.wallContactDir = 0;
   }
 
   player.onGround = false;
@@ -534,7 +532,6 @@ newGameBtn.addEventListener('click', () => {
   const gameOverDiv = document.getElementById('gameOver');
   gameOverDiv.style.display = 'none';
   menu.style.display = 'block';
-  optionsMenu.style.display = 'block';
   gameContainer.style.display = 'none';
   document.getElementById('nickname').value = '';
   saveScoreBtn.disabled = false;
