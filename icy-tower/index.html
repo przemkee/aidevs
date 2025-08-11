@@ -20,30 +20,34 @@
     <pre id="scoreTable"></pre>
   </div>
 
-    <div id="mainMenu"><!-- WALL-BOUNCE renamed from menu -->
-      <h1>Icy Tower Clone</h1>
-      <p>Umieść pliki <code>Background.jpg</code>, <code>step.jpg</code> i <code>character.jpg</code> w folderze <code>assets</code>, aby użyć własnych grafik.</p>
-      <p>Naciśnij Spację aby rozpocząć.</p>
-      <div>
-        <label>Poziom trudności:
-          <select id="difficulty">
-            <option value="easy">Łatwa</option>
-            <option value="medium">Średnia</option>
-            <option value="hard">Trudna</option>
-          </select>
-        </label>
-      </div>
-      <label>
-        <input type="checkbox" id="toggleWallBounce" />
-        Odbijanie od ścian
+  <div id="mainMenu" class="menu"><!-- WALL-BOUNCE renamed from menu -->
+    <img id="logo" src="assets/logo.png" alt="Logo" />
+    <button id="startBtn" class="menu-button">Nowa gra</button>
+    <button id="settingsBtn" class="menu-button">Ustawienia</button>
+  </div>
+
+  <div id="settingsMenu" class="menu" style="display:none;">
+    <h2>Ustawienia</h2>
+    <div>
+      <label>Poziom trudności:
+        <select id="difficulty">
+          <option value="easy">Łatwa</option>
+          <option value="medium">Średnia</option>
+          <option value="hard">Trudna</option>
+        </select>
       </label>
-      <div id="speedControl">
-        <button id="speedMinus">-</button>
-        <span id="speedValue">1x</span>
-        <button id="speedPlus">+</button>
-      </div>
-      <button id="startBtn">Start</button>
     </div>
+    <label>
+      <input type="checkbox" id="toggleWallBounce" />
+      Odbijanie od ścian
+    </label>
+    <div id="speedControl">
+      <button id="speedMinus">-</button>
+      <span id="speedValue">1x</span>
+      <button id="speedPlus">+</button>
+    </div>
+    <button id="backBtn" class="menu-button">Wróć</button>
+  </div>
 
   <div id="gameContainer" style="display:none;">
     <canvas id="game"></canvas>
