@@ -82,9 +82,9 @@ body {
   left: 50%;
   transform: translateX(-50%);
   font-size: 32px;
-  color: yellow;
+  color: red;
   -webkit-text-stroke: 1px #000;
-  border: 2px solid yellow;
+  border: 2px solid red;
   padding: 5px 10px;
   display: none;
   animation: pulse 1s infinite;
