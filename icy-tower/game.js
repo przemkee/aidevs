@@ -71,12 +71,13 @@ document.addEventListener('keydown', e => {
 });
 
 const gravity = 0.5;
+const jumpSpeed = 20;
 let platformWidth = 90;
 let speed = 2;
 
 // Movement tuning
 const groundAcceleration = 0.5;
-const airAcceleration = 0.2;
+const airAcceleration = 0.5;
 const groundFriction = 0.8;
 const maxGroundSpeed = 4;
 const maxAirSpeed = 6;
@@ -182,7 +183,7 @@ function update() {
       heightBoost = comboMultiplier / 2;
       longJumpReady = false;
     }
-    player.vy = -20 * heightBoost;
+    player.vy = -jumpSpeed * heightBoost;
     boostActive = heightBoost > 1;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
@@ -415,7 +416,9 @@ function handleWallBounce(isLeft) {
   if (lastWallSide === side) return;
   lastWallSide = side;
   const dir = isLeft ? 1 : -1;
-  player.vy = -20;
+  const prevVy = player.vy;
+  player.vy = -jumpSpeed + gravity;
+  player.y += player.vy - prevVy;
   const timeToGround = (-player.vy * 2) / gravity;
   player.vx = dir * 0.75 * gameAreaWidth / timeToGround;
   player.wallBounceTimer = 5;
