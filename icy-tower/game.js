@@ -162,10 +162,7 @@ spinBtn.addEventListener('click', () => {
   } else if (wheelSpun && !spinning) {
     wheelOverlay.style.display = 'none';
     paused = false;
-    if (widePlatform) {
-      platforms = platforms.filter(p => p !== widePlatform);
-      widePlatform = null;
-    }
+    clearWidePlatform();
   }
 });
 
@@ -224,8 +221,32 @@ backBtn.addEventListener('click', () => {
 });
 
 const backgroundImg = new Image();
-backgroundImg.src = 'assets/Background.jpg';
+let backgroundImages = [];
+let currentBackgroundIndex = 0;
 let backgroundY = 0;
+
+async function loadBackgrounds() {
+  try {
+    const res = await fetch('assets/');
+    const text = await res.text();
+    const regex = /background[^"']*\.jpg/gi;
+    const matches = Array.from(text.matchAll(regex)).map(m => m[0]);
+    const unique = [...new Set(matches)].sort();
+    backgroundImages = unique.map(name => `assets/${name}`);
+  } catch (e) {
+    backgroundImages = ['assets/background.jpg'];
+  }
+  backgroundImg.src = backgroundImages[0];
+}
+loadBackgrounds();
+
+function nextBackground() {
+  if (backgroundImages.length > 1) {
+    currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundImages.length;
+    backgroundImg.src = backgroundImages[currentBackgroundIndex];
+    backgroundY = 0;
+  }
+}
 const stepImg = new Image();
 stepImg.src = 'assets/step.jpg';
 const characterImg = new Image();
@@ -290,6 +311,7 @@ document.addEventListener('keydown', e => {
     arcadeBtn.click();
   } else if (paused && e.code === 'Space') {
     paused = false;
+    clearWidePlatform();
   }
 });
 
@@ -309,6 +331,14 @@ let autoJumpTimer = 0;
 const autoJumpInterval = 30;
 let paused = false;
 let widePlatform = null;
+
+function clearWidePlatform() {
+  if (widePlatform) {
+    platforms = platforms.filter(p => p !== widePlatform);
+    widePlatform = null;
+    nextBackground();
+  }
+}
 function initGame(diff) {
   basePlatformWidth = diff.platformWidth;
   platformWidth = basePlatformWidth * (1 + 0.25 * blueCount);
