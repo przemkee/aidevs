@@ -20,7 +20,7 @@ const game = { // WALL-BOUNCE
 
 const menu = document.getElementById('mainMenu'); // WALL-BOUNCE start menu renamed
 const arcadeBtn = document.getElementById('arcadeBtn');
-const boostBtn = document.getElementById('boostBtn');
+const boosterBtn = document.getElementById('boosterBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsMenu = document.getElementById('settingsMenu');
 const backBtn = document.getElementById('backBtn');
@@ -32,15 +32,15 @@ const scoreTable = document.getElementById('scoreTable');
 const gameOverDiv = document.getElementById('gameOver');
 const saveScoreBtn = document.getElementById('saveScoreBtn');
 const newGameBtn = document.getElementById('newGameBtn');
-const boostFrames = document.getElementById('boostFrames');
+const boosterFrames = document.getElementById('boosterFrames');
 const wheelOverlay = document.getElementById('wheelOverlay');
 const spinBtn = document.getElementById('spinBtn');
 const wheelCanvas = document.getElementById('spinWheel');
 const wheelCtx = wheelCanvas.getContext('2d');
 let wheelSpun = false;
 let spinning = false;
-const skillSlots = document.querySelectorAll('.skill-slot');
-let skills = ['', '', ''];
+const boosterSlots = document.querySelectorAll('.booster-frame');
+let skills = Array(boosterSlots.length).fill('');
 let nextSkillIndex = 0;
 let redCount = 0, yellowCount = 0, greenCount = 0, blueCount = 0;
 const wheelColors = ['red', 'yellow', 'green', 'blue', 'red', 'yellow', 'green', 'blue'];
@@ -123,7 +123,7 @@ function stopMusic() {
   Tone.Transport.stop();
 }
 
-// wheel drawing for boost mode pause
+// wheel drawing for booster mode pause
 function drawWheel() {
   const radius = wheelCanvas.width / 2;
   for (let i = 0; i < 8; i++) {
@@ -154,7 +154,7 @@ spinBtn.addEventListener('click', () => {
     spinning = true;
     const spins = 5 + Math.floor(Math.random() * 6);
     chosenIndex = Math.floor(Math.random() * 8);
-    const rotation = spins * 360 + chosenIndex * 45;
+    const rotation = spins * 360 - chosenIndex * 45 - 22.5;
     requestAnimationFrame(() => {
       wheelCanvas.style.transition = 'transform 4s ease-in-out';
       wheelCanvas.style.transform = `rotate(${rotation}deg)`;
@@ -176,9 +176,9 @@ wheelCanvas.addEventListener('transitionend', () => {
 });
 
 function addSkill(color) {
-  skillSlots[nextSkillIndex].style.background = color;
+  boosterSlots[nextSkillIndex].style.borderColor = color;
   skills[nextSkillIndex] = color;
-  nextSkillIndex = (nextSkillIndex + 1) % skillSlots.length;
+  nextSkillIndex = (nextSkillIndex + 1) % boosterSlots.length;
   updateSkillEffects();
 }
 
@@ -244,7 +244,7 @@ function startGame() {
   menu.style.display = 'none';
   gameContainer.style.display = 'block';
   wheelOverlay.style.display = 'none';
-  boostFrames.style.display = game.settings.continuousPlay ? 'none' : 'flex';
+  boosterFrames.style.display = game.settings.continuousPlay ? 'none' : 'flex';
   canvas.width = 600;
   canvas.height = window.innerHeight;
   const diff = difficulties[difficultySelect.value];
@@ -260,7 +260,7 @@ arcadeBtn.addEventListener('click', () => {
   startGame();
 });
 
-boostBtn.addEventListener('click', () => {
+boosterBtn.addEventListener('click', () => {
   game.settings.continuousPlay = false;
   startGame();
 });
@@ -485,10 +485,13 @@ function update(now) { // WALL-BOUNCE
         longJumpReady = false;
       }
       player.lastPlatformId = plat.id;
-      if (!game.settings.continuousPlay && plat.id % 100 === 0 && plat.id !== 0) {
-        paused = true;
-        showWheel();
-      }
+        if (!game.settings.continuousPlay && plat.id !== 0) {
+          const interval = plat.id <= 200 ? 100 : 200;
+          if (plat.id % interval === 0) {
+            paused = true;
+            showWheel();
+          }
+        }
     }
   }
 
@@ -578,10 +581,13 @@ function update(now) { // WALL-BOUNCE
         height: platformHeight,
         id: nextPlatformId++
       };
-      if (!game.settings.continuousPlay && plat.id % 100 === 0) {
-        plat.x = gameAreaX;
-        plat.width = gameAreaWidth;
-      }
+        if (!game.settings.continuousPlay) {
+          const interval = plat.id <= 200 ? 100 : 200;
+          if (plat.id % interval === 0) {
+            plat.x = gameAreaX;
+            plat.width = gameAreaWidth;
+          }
+        }
       platforms.push(plat);
       if (plat.id % 20 === 0) {
         rings.push({ x: plat.x + plat.width / 2, y: plat.y - ringRadius, radius: ringRadius });
@@ -698,7 +704,7 @@ newGameBtn.addEventListener('click', () => {
   settingsMenu.style.display = 'none';
   gameContainer.style.display = 'none';
    wheelOverlay.style.display = 'none';
-   boostFrames.style.display = 'none';
+   boosterFrames.style.display = 'none';
   document.getElementById('nickname').value = '';
   saveScoreBtn.disabled = false;
 });
