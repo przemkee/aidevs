@@ -32,6 +32,13 @@ const scoreTable = document.getElementById('scoreTable');
 const gameOverDiv = document.getElementById('gameOver');
 const saveScoreBtn = document.getElementById('saveScoreBtn');
 const newGameBtn = document.getElementById('newGameBtn');
+const boostFrames = document.getElementById('boostFrames');
+const wheelOverlay = document.getElementById('wheelOverlay');
+const spinBtn = document.getElementById('spinBtn');
+const wheelCanvas = document.getElementById('spinWheel');
+const wheelCtx = wheelCanvas.getContext('2d');
+let wheelSpun = false;
+let spinning = false;
 // WALL-BOUNCE: option controls
 const toggleWallBounce = document.getElementById('toggleWallBounce');
 const speedMinus = document.getElementById('speedMinus');
@@ -110,6 +117,53 @@ function stopMusic() {
   Tone.Transport.stop();
 }
 
+// wheel drawing for boost mode pause
+function drawWheel() {
+  const radius = wheelCanvas.width / 2;
+  const colors = ['#f66', '#6f6', '#66f', '#ff6', '#6ff', '#f6f', '#ccc', '#999'];
+  for (let i = 0; i < 8; i++) {
+    wheelCtx.beginPath();
+    wheelCtx.moveTo(radius, radius);
+    wheelCtx.arc(radius, radius, radius, i * Math.PI / 4, (i + 1) * Math.PI / 4);
+    wheelCtx.fillStyle = colors[i % colors.length];
+    wheelCtx.fill();
+    wheelCtx.strokeStyle = '#000';
+    wheelCtx.stroke();
+  }
+}
+drawWheel();
+
+function showWheel() {
+  wheelOverlay.style.display = 'flex';
+  spinBtn.textContent = 'Spin!';
+  wheelCanvas.style.transition = 'none';
+  wheelCanvas.style.transform = 'rotate(0deg)';
+  wheelSpun = false;
+  spinning = false;
+}
+
+spinBtn.addEventListener('click', () => {
+  if (!wheelSpun && !spinning) {
+    spinning = true;
+    const spins = 5 + Math.floor(Math.random() * 6);
+    requestAnimationFrame(() => {
+      wheelCanvas.style.transition = 'transform 4s ease-in-out';
+      wheelCanvas.style.transform = `rotate(${spins * 360}deg)`;
+    });
+  } else if (wheelSpun && !spinning) {
+    wheelOverlay.style.display = 'none';
+    paused = false;
+  }
+});
+
+wheelCanvas.addEventListener('transitionend', () => {
+  if (spinning) {
+    spinning = false;
+    wheelSpun = true;
+    spinBtn.textContent = 'Continue';
+  }
+});
+
 settingsBtn.addEventListener('click', () => {
   menu.style.display = 'none';
   settingsMenu.style.display = 'block';
@@ -154,6 +208,8 @@ updateScoreboard();
 function startGame() {
   menu.style.display = 'none';
   gameContainer.style.display = 'block';
+  wheelOverlay.style.display = 'none';
+  boostFrames.style.display = game.settings.continuousPlay ? 'none' : 'flex';
   canvas.width = 600;
   canvas.height = window.innerHeight;
   const diff = difficulties[difficultySelect.value];
@@ -175,7 +231,9 @@ boostBtn.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
-  if (gameOverDiv.style.display !== 'none' && e.code === 'Space') {
+  if (wheelOverlay.style.display !== 'none' && e.code === 'Space') {
+    spinBtn.click();
+  } else if (gameOverDiv.style.display !== 'none' && e.code === 'Space') {
     newGameBtn.click();
   } else if (menu.style.display !== 'none' && e.code === 'Space') {
     arcadeBtn.click();
@@ -391,6 +449,7 @@ function update(now) { // WALL-BOUNCE
       player.lastPlatformId = plat.id;
       if (!game.settings.continuousPlay && plat.id % 100 === 0 && plat.id !== 0) {
         paused = true;
+        showWheel();
       }
     }
   }
@@ -600,6 +659,8 @@ newGameBtn.addEventListener('click', () => {
   menu.style.display = 'block';
   settingsMenu.style.display = 'none';
   gameContainer.style.display = 'none';
+   wheelOverlay.style.display = 'none';
+   boostFrames.style.display = 'none';
   document.getElementById('nickname').value = '';
   saveScoreBtn.disabled = false;
 });
