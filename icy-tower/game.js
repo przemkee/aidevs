@@ -39,6 +39,12 @@ const wheelCanvas = document.getElementById('spinWheel');
 const wheelCtx = wheelCanvas.getContext('2d');
 let wheelSpun = false;
 let spinning = false;
+const skillSlots = document.querySelectorAll('.skill-slot');
+let skills = ['', '', ''];
+let nextSkillIndex = 0;
+let redCount = 0, yellowCount = 0, greenCount = 0, blueCount = 0;
+const wheelColors = ['red', 'yellow', 'green', 'blue', 'red', 'yellow', 'green', 'blue'];
+let chosenIndex = 0;
 // WALL-BOUNCE: option controls
 const toggleWallBounce = document.getElementById('toggleWallBounce');
 const speedMinus = document.getElementById('speedMinus');
@@ -120,12 +126,13 @@ function stopMusic() {
 // wheel drawing for boost mode pause
 function drawWheel() {
   const radius = wheelCanvas.width / 2;
-  const colors = ['#f66', '#6f6', '#66f', '#ff6', '#6ff', '#f6f', '#ccc', '#999'];
   for (let i = 0; i < 8; i++) {
     wheelCtx.beginPath();
     wheelCtx.moveTo(radius, radius);
-    wheelCtx.arc(radius, radius, radius, i * Math.PI / 4, (i + 1) * Math.PI / 4);
-    wheelCtx.fillStyle = colors[i % colors.length];
+    const start = -Math.PI / 2 + i * Math.PI / 4;
+    const end = start + Math.PI / 4;
+    wheelCtx.arc(radius, radius, radius, start, end);
+    wheelCtx.fillStyle = wheelColors[i];
     wheelCtx.fill();
     wheelCtx.strokeStyle = '#000';
     wheelCtx.stroke();
@@ -146,9 +153,11 @@ spinBtn.addEventListener('click', () => {
   if (!wheelSpun && !spinning) {
     spinning = true;
     const spins = 5 + Math.floor(Math.random() * 6);
+    chosenIndex = Math.floor(Math.random() * 8);
+    const rotation = spins * 360 + chosenIndex * 45;
     requestAnimationFrame(() => {
       wheelCanvas.style.transition = 'transform 4s ease-in-out';
-      wheelCanvas.style.transform = `rotate(${spins * 360}deg)`;
+      wheelCanvas.style.transform = `rotate(${rotation}deg)`;
     });
   } else if (wheelSpun && !spinning) {
     wheelOverlay.style.display = 'none';
@@ -161,8 +170,34 @@ wheelCanvas.addEventListener('transitionend', () => {
     spinning = false;
     wheelSpun = true;
     spinBtn.textContent = 'Continue';
+    const color = wheelColors[chosenIndex];
+    addSkill(color);
   }
 });
+
+function addSkill(color) {
+  skillSlots[nextSkillIndex].style.background = color;
+  skills[nextSkillIndex] = color;
+  nextSkillIndex = (nextSkillIndex + 1) % skillSlots.length;
+  updateSkillEffects();
+}
+
+function updateSkillEffects() {
+  redCount = skills.filter(c => c === 'red').length;
+  yellowCount = skills.filter(c => c === 'yellow').length;
+  greenCount = skills.filter(c => c === 'green').length;
+  blueCount = skills.filter(c => c === 'blue').length;
+  platformWidth = basePlatformWidth * (1 + 0.25 * blueCount);
+  if (platforms) {
+    for (let plat of platforms) {
+      if (plat.id !== 0) {
+        const center = plat.x + plat.width / 2;
+        plat.width = platformWidth;
+        plat.x = Math.min(Math.max(center - plat.width / 2, gameAreaX), gameAreaX + gameAreaWidth - plat.width);
+      }
+    }
+  }
+}
 
 settingsBtn.addEventListener('click', () => {
   menu.style.display = 'none';
@@ -243,6 +278,7 @@ document.addEventListener('keydown', e => {
 });
 
 const gravity = 0.5;
+let basePlatformWidth = 90;
 let platformWidth = 90;
 let speed = 2;
 
@@ -257,7 +293,8 @@ let autoJumpTimer = 0;
 const autoJumpInterval = 30;
 let paused = false;
 function initGame(diff) {
-  platformWidth = diff.platformWidth;
+  basePlatformWidth = diff.platformWidth;
+  platformWidth = basePlatformWidth * (1 + 0.25 * blueCount);
   speed = diff.speed;
   gameAreaWidth = Math.min(600, canvas.width);
   gameAreaX = (canvas.width - gameAreaWidth) / 2;
@@ -283,7 +320,7 @@ function initGame(diff) {
     if (this.wallBounceCount > 0) return false;
     this.wallBounceCount = 1;
     this.vx = -this.wallContactDir * 4 * game.settings.speedMultiplier;
-    this.vy = -20 * game.settings.speedMultiplier;
+    this.vy = -20 * Math.pow(2, greenCount) * game.settings.speedMultiplier;
     this.flipping = true;
     this.rotation = 0;
     this.flipDir = -this.wallContactDir;
@@ -356,6 +393,7 @@ function update(now) { // WALL-BOUNCE
       heightBoost = comboMultiplier / 2;
       longJumpReady = false;
     }
+    heightBoost *= 1 + 0.25 * redCount;
     player.vy = -20 * heightBoost * game.settings.speedMultiplier;
     player.onGround = false;
     if (!gameStarted) gameStarted = true;
@@ -430,7 +468,7 @@ function update(now) { // WALL-BOUNCE
         }
 
         // score with current multiplier before potential upgrade
-        score += jumped * comboMultiplier;
+        score += Math.round(jumped * comboMultiplier * (1 + 0.25 * yellowCount));
 
         // increase combo after required number of long jumps
         if (comboHits >= comboMultiplier) {
@@ -441,7 +479,7 @@ function update(now) { // WALL-BOUNCE
           }
         }
       } else {
-        score += jumped;
+        score += Math.round(jumped * (1 + 0.25 * yellowCount));
         comboMultiplier = 1;
         comboHits = 0;
         longJumpReady = false;
@@ -504,7 +542,7 @@ function update(now) { // WALL-BOUNCE
       player.y + player.height > ring.y - ring.radius
     ) {
       rings.splice(i, 1);
-      score += 1000;
+      score += Math.round(1000 * (1 + 0.25 * yellowCount));
       scoreDisplay.style.color = 'gold';
       setTimeout(() => (scoreDisplay.style.color = '#fff'), 1000);
       continue;
