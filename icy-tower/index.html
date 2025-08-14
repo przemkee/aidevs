@@ -13,6 +13,10 @@
     <li>Złote obręcze: +1000 pkt</li>
     <li>Kombos: pomiń ≥4 platformy, mnożnik rośnie co kilka długich skoków</li>
     <li>Boost: wyższy skok przy mnożniku ≥4</li>
+    <li>Czerwony skill: skaczesz o 1/4 wyżej</li>
+    <li>Żółty skill: zdobywasz o 1/4 punktów więcej</li>
+    <li>Zielony skill: odbicia od ścian są 2× wyższe</li>
+    <li>Niebieski skill: stopnie są o 1/4 szersze</li>
   </ul>
 </div>
   <div id="scoreboard">
@@ -63,9 +67,15 @@
       <div class="boost-frame"></div>
       <div class="boost-frame"></div>
     </div>
+    <div id="skills">
+      <div class="skill-slot"></div>
+      <div class="skill-slot"></div>
+      <div class="skill-slot"></div>
+    </div>
   </div>
 
   <div id="wheelOverlay" style="display:none;">
+    <div id="wheelPointer"></div>
     <canvas id="spinWheel" width="200" height="200"></canvas>
     <button id="spinBtn">Spin!</button>
   </div>
