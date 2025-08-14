@@ -12,7 +12,7 @@
     <li>Skok odbywa się automatycznie</li>
     <li>Złote obręcze: +1000 pkt</li>
     <li>Kombos: pomiń ≥4 platformy, mnożnik rośnie co kilka długich skoków</li>
-    <li>Boost: wyższy skok przy mnożniku ≥4</li>
+    <li>Booster: wyższy skok przy mnożniku ≥4</li>
     <li>Czerwony skill: skaczesz o 1/4 wyżej</li>
     <li>Żółty skill: zdobywasz o 1/4 punktów więcej</li>
     <li>Zielony skill: odbicia od ścian są 2× wyższe</li>
@@ -27,7 +27,7 @@
   <div id="mainMenu" class="menu"><!-- WALL-BOUNCE renamed from menu -->
     <img id="logo" src="assets/logo.png" alt="Logo" />
     <button id="arcadeBtn" class="menu-button">Arcade Mode</button>
-    <button id="boostBtn" class="menu-button">Boost Mode</button>
+    <button id="boosterBtn" class="menu-button">Booster Mode</button>
     <button id="settingsBtn" class="menu-button">Ustawienia</button>
   </div>
 
@@ -62,15 +62,10 @@
     <canvas id="game"></canvas>
     <div id="currentScore">0</div>
     <div id="comboDisplay"></div>
-    <div id="boostFrames" class="boost-frames" style="display:none;">
-      <div class="boost-frame"></div>
-      <div class="boost-frame"></div>
-      <div class="boost-frame"></div>
-    </div>
-    <div id="skills">
-      <div class="skill-slot"></div>
-      <div class="skill-slot"></div>
-      <div class="skill-slot"></div>
+    <div id="boosterFrames" class="booster-frames" style="display:none;">
+      <div class="booster-frame"></div>
+      <div class="booster-frame"></div>
+      <div class="booster-frame"></div>
     </div>
   </div>
 
