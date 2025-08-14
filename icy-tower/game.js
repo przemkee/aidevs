@@ -162,6 +162,10 @@ spinBtn.addEventListener('click', () => {
   } else if (wheelSpun && !spinning) {
     wheelOverlay.style.display = 'none';
     paused = false;
+    if (widePlatform) {
+      platforms = platforms.filter(p => p !== widePlatform);
+      widePlatform = null;
+    }
   }
 });
 
@@ -187,7 +191,7 @@ function resetSkills() {
   nextSkillIndex = 0;
   for (let slot of boosterSlots) {
     slot.style.backgroundColor = '';
-    slot.style.borderColor = '#fff';
+    slot.style.borderColor = '#000';
   }
   updateSkillEffects();
 }
@@ -221,6 +225,7 @@ backBtn.addEventListener('click', () => {
 
 const backgroundImg = new Image();
 backgroundImg.src = 'assets/Background.jpg';
+let backgroundY = 0;
 const stepImg = new Image();
 stepImg.src = 'assets/step.jpg';
 const characterImg = new Image();
@@ -303,6 +308,7 @@ let boostTimer;
 let autoJumpTimer = 0;
 const autoJumpInterval = 30;
 let paused = false;
+let widePlatform = null;
 function initGame(diff) {
   basePlatformWidth = diff.platformWidth;
   platformWidth = basePlatformWidth * (1 + 0.25 * blueCount);
@@ -520,6 +526,7 @@ function update(now) { // WALL-BOUNCE
       for (let ring of rings) {
         ring.y += diffY;
       }
+      backgroundY += diffY;
     }
     if (player.onGround) {
       player.y += scroll;
@@ -533,6 +540,7 @@ function update(now) { // WALL-BOUNCE
     for (let ring of rings) {
       ring.y += scroll;
     }
+    backgroundY += scroll;
   }
 
   if (comboMultiplier > 1) {
@@ -597,6 +605,7 @@ function update(now) { // WALL-BOUNCE
           if (plat.id % interval === 0) {
             plat.x = gameAreaX;
             plat.width = gameAreaWidth;
+            widePlatform = plat;
           }
         }
       platforms.push(plat);
@@ -614,7 +623,9 @@ function update(now) { // WALL-BOUNCE
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (backgroundImg.complete) {
-    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+    const bgY = backgroundY % canvas.height;
+    ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
+    ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
   } else {
     ctx.fillStyle = '#88f';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
