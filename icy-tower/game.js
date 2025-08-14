@@ -9,11 +9,13 @@ const config = {
 
 const savedSetting = localStorage.getItem('wallBounceEnabled'); // WALL-BOUNCE
 const savedMusic = localStorage.getItem('musicEnabled');
+const savedContinuous = localStorage.getItem('continuousPlay');
 const game = { // WALL-BOUNCE
   settings: {
     wallBounceEnabled: savedSetting !== null ? JSON.parse(savedSetting) : config.wallBounceEnabledDefault,
     speedMultiplier: 1,
-    musicEnabled: savedMusic !== null ? JSON.parse(savedMusic) : true
+    musicEnabled: savedMusic !== null ? JSON.parse(savedMusic) : true,
+    continuousPlay: savedContinuous !== null ? JSON.parse(savedContinuous) : true
   }
 };
 
@@ -36,8 +38,10 @@ const speedMinus = document.getElementById('speedMinus');
 const speedPlus = document.getElementById('speedPlus');
 const speedValue = document.getElementById('speedValue');
 const toggleMusic = document.getElementById('toggleMusic');
+const toggleContinuous = document.getElementById('toggleContinuous');
 toggleWallBounce.checked = game.settings.wallBounceEnabled;
 toggleMusic.checked = game.settings.musicEnabled;
+toggleContinuous.checked = game.settings.continuousPlay;
 function updateSpeedLabel() { speedValue.textContent = game.settings.speedMultiplier.toFixed(1) + 'x'; }
 updateSpeedLabel();
 toggleWallBounce.addEventListener('change', () => {
@@ -60,6 +64,10 @@ toggleMusic.addEventListener('change', () => {
   } else {
     stopMusic();
   }
+});
+toggleContinuous.addEventListener('change', () => {
+  game.settings.continuousPlay = toggleContinuous.checked;
+  localStorage.setItem('continuousPlay', game.settings.continuousPlay);
 });
 
 // upbeat chiptune loop using Tone.js
@@ -169,6 +177,8 @@ document.addEventListener('keydown', e => {
     newGameBtn.click();
   } else if (menu.style.display !== 'none' && e.code === 'Space') {
     startGame();
+  } else if (paused && e.code === 'Space') {
+    paused = false;
   }
 });
 
@@ -185,6 +195,7 @@ let longJumpReady;
 let boostTimer;
 let autoJumpTimer = 0;
 const autoJumpInterval = 30;
+let paused = false;
 function initGame(diff) {
   platformWidth = diff.platformWidth;
   speed = diff.speed;
@@ -259,6 +270,7 @@ function initGame(diff) {
   scoreDisplay.style.color = '#fff';
   gameOverDisplayed = false;
   autoJumpTimer = 0;
+  paused = false;
 }
 
 document.addEventListener('keydown', e => {
@@ -375,6 +387,9 @@ function update(now) { // WALL-BOUNCE
         longJumpReady = false;
       }
       player.lastPlatformId = plat.id;
+      if (!game.settings.continuousPlay && plat.id % 100 === 0 && plat.id !== 0) {
+        paused = true;
+      }
     }
   }
 
@@ -464,6 +479,10 @@ function update(now) { // WALL-BOUNCE
         height: platformHeight,
         id: nextPlatformId++
       };
+      if (!game.settings.continuousPlay && plat.id % 100 === 0) {
+        plat.x = gameAreaX;
+        plat.width = gameAreaWidth;
+      }
       platforms.push(plat);
       if (plat.id % 20 === 0) {
         rings.push({ x: plat.x + plat.width / 2, y: plat.y - ringRadius, radius: ringRadius });
@@ -592,7 +611,9 @@ function loop(now) { // WALL-BOUNCE
     }
     return;
   }
-  update(now); // WALL-BOUNCE
+  if (!paused) {
+    update(now); // WALL-BOUNCE
+  }
   draw();
   requestAnimationFrame(loop);
 }
