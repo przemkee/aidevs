@@ -9,18 +9,18 @@ const config = {
 
 const savedSetting = localStorage.getItem('wallBounceEnabled'); // WALL-BOUNCE
 const savedMusic = localStorage.getItem('musicEnabled');
-const savedContinuous = localStorage.getItem('continuousPlay');
 const game = { // WALL-BOUNCE
   settings: {
     wallBounceEnabled: savedSetting !== null ? JSON.parse(savedSetting) : config.wallBounceEnabledDefault,
     speedMultiplier: 1,
     musicEnabled: savedMusic !== null ? JSON.parse(savedMusic) : true,
-    continuousPlay: savedContinuous !== null ? JSON.parse(savedContinuous) : true
+    continuousPlay: true
   }
 };
 
 const menu = document.getElementById('mainMenu'); // WALL-BOUNCE start menu renamed
-const startBtn = document.getElementById('startBtn');
+const arcadeBtn = document.getElementById('arcadeBtn');
+const boostBtn = document.getElementById('boostBtn');
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsMenu = document.getElementById('settingsMenu');
 const backBtn = document.getElementById('backBtn');
@@ -38,10 +38,8 @@ const speedMinus = document.getElementById('speedMinus');
 const speedPlus = document.getElementById('speedPlus');
 const speedValue = document.getElementById('speedValue');
 const toggleMusic = document.getElementById('toggleMusic');
-const toggleContinuous = document.getElementById('toggleContinuous');
 toggleWallBounce.checked = game.settings.wallBounceEnabled;
 toggleMusic.checked = game.settings.musicEnabled;
-toggleContinuous.checked = game.settings.continuousPlay;
 function updateSpeedLabel() { speedValue.textContent = game.settings.speedMultiplier.toFixed(1) + 'x'; }
 updateSpeedLabel();
 toggleWallBounce.addEventListener('change', () => {
@@ -64,10 +62,6 @@ toggleMusic.addEventListener('change', () => {
   } else {
     stopMusic();
   }
-});
-toggleContinuous.addEventListener('change', () => {
-  game.settings.continuousPlay = toggleContinuous.checked;
-  localStorage.setItem('continuousPlay', game.settings.continuousPlay);
 });
 
 // upbeat chiptune loop using Tone.js
@@ -170,13 +164,21 @@ function startGame() {
   requestAnimationFrame(loop);
 }
 
-startBtn.addEventListener('click', startGame);
+arcadeBtn.addEventListener('click', () => {
+  game.settings.continuousPlay = true;
+  startGame();
+});
+
+boostBtn.addEventListener('click', () => {
+  game.settings.continuousPlay = false;
+  startGame();
+});
 
 document.addEventListener('keydown', e => {
   if (gameOverDiv.style.display !== 'none' && e.code === 'Space') {
     newGameBtn.click();
   } else if (menu.style.display !== 'none' && e.code === 'Space') {
-    startGame();
+    arcadeBtn.click();
   } else if (paused && e.code === 'Space') {
     paused = false;
   }
