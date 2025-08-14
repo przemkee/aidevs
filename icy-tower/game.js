@@ -176,9 +176,19 @@ wheelCanvas.addEventListener('transitionend', () => {
 });
 
 function addSkill(color) {
-  boosterSlots[nextSkillIndex].style.borderColor = color;
+  boosterSlots[nextSkillIndex].style.backgroundColor = color;
   skills[nextSkillIndex] = color;
   nextSkillIndex = (nextSkillIndex + 1) % boosterSlots.length;
+  updateSkillEffects();
+}
+
+function resetSkills() {
+  skills = Array(boosterSlots.length).fill('');
+  nextSkillIndex = 0;
+  for (let slot of boosterSlots) {
+    slot.style.backgroundColor = '';
+    slot.style.borderColor = '#fff';
+  }
   updateSkillEffects();
 }
 
@@ -241,6 +251,7 @@ function updateScoreboard() {
 updateScoreboard();
 
 function startGame() {
+  resetSkills();
   menu.style.display = 'none';
   gameContainer.style.display = 'block';
   wheelOverlay.style.display = 'none';
@@ -674,6 +685,7 @@ function showGameOverScreen() {
   finalScore.textContent = `Gratulacje! Twój wynik: ${score}`;
   updateScoreboard();
   gameOverDiv.style.display = 'flex';
+  resetSkills();
 }
 
 saveScoreBtn.addEventListener('click', () => {
