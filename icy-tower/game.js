@@ -226,7 +226,6 @@ let backgroundImages = [];
 let currentBackgroundIndex = 0;
 let backgroundY = 0;
 let transitionPlatform = null;
-const transitionHeight = 150;
 
 function loadBackgrounds() {
   const encoded = [
@@ -649,25 +648,22 @@ function draw() {
   if (prevBackgroundImg) {
     if (transitionPlatform) {
       const transY = transitionPlatform.y;
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, 0, canvas.width, transY);
-      ctx.clip();
       if (backgroundImg.complete) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, canvas.width, transY);
+        ctx.clip();
         ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
+        ctx.restore();
       }
-      const gradient = ctx.createLinearGradient(0, transY - transitionHeight, 0, transY);
-      gradient.addColorStop(0, 'rgba(0,0,0,1)');
-      gradient.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, transY - transitionHeight, canvas.width, transitionHeight);
-      ctx.restore();
-      ctx.globalCompositeOperation = 'destination-over';
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, transY, canvas.width, canvas.height - transY);
+      ctx.clip();
       ctx.drawImage(prevBackgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
       ctx.drawImage(prevBackgroundImg, 0, bgY, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = 'source-over';
+      ctx.restore();
     } else {
       if (backgroundImg.complete) {
         ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
