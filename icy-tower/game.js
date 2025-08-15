@@ -225,17 +225,13 @@ let backgroundImages = [];
 let currentBackgroundIndex = 0;
 let backgroundY = 0;
 
-async function loadBackgrounds() {
-  try {
-    const res = await fetch('assets/');
-    const text = await res.text();
-    const regex = /background[^"']*\.jpg/gi;
-    const matches = Array.from(text.matchAll(regex)).map(m => m[0]);
-    const unique = [...new Set(matches)].sort();
-    backgroundImages = unique.map(name => `assets/${name}`);
-  } catch (e) {
-    backgroundImages = ['assets/background.jpg'];
-  }
+function loadBackgrounds() {
+  const encoded = [
+    'YmFja2dyb3VuZDEuanBn',
+    'YmFja2dyb3VuZDIuanBn',
+    'YmFja2dyb3VuZDMuanBn'
+  ];
+  backgroundImages = encoded.map(name => `assets/${atob(name)}`);
   backgroundImg.src = backgroundImages[0];
 }
 loadBackgrounds();
@@ -334,9 +330,8 @@ let widePlatform = null;
 
 function clearWidePlatform() {
   if (widePlatform) {
-    platforms = platforms.filter(p => p !== widePlatform);
+    // long step persists; only drop reference
     widePlatform = null;
-    nextBackground();
   }
 }
 function initGame(diff) {
@@ -636,6 +631,7 @@ function update(now) { // WALL-BOUNCE
             plat.x = gameAreaX;
             plat.width = gameAreaWidth;
             widePlatform = plat;
+            nextBackground();
           }
         }
       platforms.push(plat);
