@@ -226,6 +226,7 @@ let backgroundImages = [];
 let currentBackgroundIndex = 0;
 let backgroundY = 0;
 let transitionPlatform = null;
+const transitionHeight = 150;
 
 function loadBackgrounds() {
   const encoded = [
@@ -646,29 +647,26 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const bgY = backgroundY % canvas.height;
   if (prevBackgroundImg) {
+    ctx.drawImage(prevBackgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
+    ctx.drawImage(prevBackgroundImg, 0, bgY, canvas.width, canvas.height);
     if (transitionPlatform) {
       const transY = transitionPlatform.y;
-      if (backgroundImg.complete) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, canvas.width, transY);
-        ctx.clip();
-        ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
-        ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
-        ctx.restore();
-      }
       ctx.save();
       ctx.beginPath();
-      ctx.rect(0, transY, canvas.width, canvas.height - transY);
+      ctx.rect(0, 0, canvas.width, transY);
       ctx.clip();
-      ctx.drawImage(prevBackgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
-      ctx.drawImage(prevBackgroundImg, 0, bgY, canvas.width, canvas.height);
-      ctx.restore();
-    } else {
       if (backgroundImg.complete) {
         ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
       }
+      const gradient = ctx.createLinearGradient(0, transY - transitionHeight, 0, transY);
+      gradient.addColorStop(0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, transY - transitionHeight, canvas.width, transitionHeight);
+      ctx.restore();
+      ctx.globalCompositeOperation = 'source-over';
     }
     if (!transitionPlatform || transitionPlatform.y >= canvas.height) {
       prevBackgroundImg = null;
