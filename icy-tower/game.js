@@ -162,7 +162,6 @@ spinBtn.addEventListener('click', () => {
   } else if (wheelSpun && !spinning) {
     wheelOverlay.style.display = 'none';
     paused = false;
-    clearWidePlatform();
   }
 });
 
@@ -312,7 +311,6 @@ document.addEventListener('keydown', e => {
     arcadeBtn.click();
   } else if (paused && e.code === 'Space') {
     paused = false;
-    clearWidePlatform();
   }
 });
 
@@ -332,13 +330,6 @@ let autoJumpTimer = 0;
 const autoJumpInterval = 30;
 let paused = false;
 let widePlatform = null;
-
-function clearWidePlatform() {
-  if (widePlatform) {
-    // long step persists; only drop reference
-    widePlatform = null;
-  }
-}
 function initGame(diff) {
   basePlatformWidth = diff.platformWidth;
   platformWidth = basePlatformWidth * (1 + 0.25 * blueCount);
@@ -548,7 +539,9 @@ function update(now) { // WALL-BOUNCE
       const diffY = canvas.height / 2 - player.y;
       player.y = canvas.height / 2;
       for (let plat of platforms) {
-        plat.y += diffY;
+        if (plat !== widePlatform) {
+          plat.y += diffY;
+        }
       }
       for (let star of stars) {
         star.y += diffY;
@@ -562,7 +555,9 @@ function update(now) { // WALL-BOUNCE
       player.y += scroll;
     }
     for (let plat of platforms) {
-      plat.y += scroll;
+      if (plat !== widePlatform) {
+        plat.y += scroll;
+      }
     }
     for (let star of stars) {
       star.y += scroll;
@@ -620,7 +615,7 @@ function update(now) { // WALL-BOUNCE
 
   // spawn new platforms
   if (gameStarted) {
-    while (platforms.length && platforms[0].y > canvas.height) {
+    while (platforms.length && platforms[0].y > canvas.height && platforms[0] !== widePlatform) {
       platforms.shift();
       const last = platforms[platforms.length - 1];
       const plat = {
@@ -668,7 +663,7 @@ function draw() {
         ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
       }
       const gradient = ctx.createLinearGradient(0, transY - transitionHeight, 0, transY);
-      gradient.addColorStop(0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(0, 'rgba(0,0,0,0.7)');
       gradient.addColorStop(1, 'rgba(0,0,0,1)');
       ctx.globalCompositeOperation = 'destination-out';
       ctx.fillStyle = gradient;
