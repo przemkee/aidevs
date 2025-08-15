@@ -220,10 +220,13 @@ backBtn.addEventListener('click', () => {
   menu.style.display = 'block';
 });
 
-const backgroundImg = new Image();
+let backgroundImg = new Image();
+let prevBackgroundImg = null;
 let backgroundImages = [];
 let currentBackgroundIndex = 0;
 let backgroundY = 0;
+let transitionPlatform = null;
+const transitionHeight = 150;
 
 function loadBackgrounds() {
   const encoded = [
@@ -236,11 +239,13 @@ function loadBackgrounds() {
 }
 loadBackgrounds();
 
-function nextBackground() {
+function nextBackground(plat) {
   if (backgroundImages.length > 1) {
+    prevBackgroundImg = backgroundImg;
     currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundImages.length;
+    backgroundImg = new Image();
     backgroundImg.src = backgroundImages[currentBackgroundIndex];
-    backgroundY = 0;
+    transitionPlatform = plat;
   }
 }
 const stepImg = new Image();
@@ -631,7 +636,7 @@ function update(now) { // WALL-BOUNCE
             plat.x = gameAreaX;
             plat.width = gameAreaWidth;
             widePlatform = plat;
-            nextBackground();
+            nextBackground(plat);
           }
         }
       platforms.push(plat);
@@ -648,8 +653,34 @@ function update(now) { // WALL-BOUNCE
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (backgroundImg.complete) {
-    const bgY = backgroundY % canvas.height;
+  const bgY = backgroundY % canvas.height;
+  if (prevBackgroundImg) {
+    ctx.drawImage(prevBackgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
+    ctx.drawImage(prevBackgroundImg, 0, bgY, canvas.width, canvas.height);
+    if (transitionPlatform) {
+      const transY = transitionPlatform.y;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, canvas.width, transY);
+      ctx.clip();
+      if (backgroundImg.complete) {
+        ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
+        ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
+      }
+      const gradient = ctx.createLinearGradient(0, transY - transitionHeight, 0, transY);
+      gradient.addColorStop(0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, transY - transitionHeight, canvas.width, transitionHeight);
+      ctx.restore();
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    if (!transitionPlatform || transitionPlatform.y >= canvas.height) {
+      prevBackgroundImg = null;
+      transitionPlatform = null;
+    }
+  } else if (backgroundImg.complete) {
     ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
     ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
   } else {
