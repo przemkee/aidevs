@@ -200,10 +200,11 @@ function updateSkillEffects() {
   platformWidth = basePlatformWidth * (1 + 0.25 * blueCount);
   if (platforms) {
     for (let plat of platforms) {
-      if (plat.id !== 0) {
+      if (plat.id !== 0 && plat !== widePlatform) {
         const center = plat.x + plat.width / 2;
         plat.width = platformWidth;
-        plat.x = Math.min(Math.max(center - plat.width / 2, gameAreaX), gameAreaX + gameAreaWidth - plat.width);
+        plat.x = Math.min(Math.max(center - plat.width / 2, gameAreaX),
+          gameAreaX + gameAreaWidth - plat.width);
       }
     }
   }
@@ -646,8 +647,6 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const bgY = backgroundY % canvas.height;
   if (prevBackgroundImg) {
-    ctx.drawImage(prevBackgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
-    ctx.drawImage(prevBackgroundImg, 0, bgY, canvas.width, canvas.height);
     if (transitionPlatform) {
       const transY = transitionPlatform.y;
       ctx.save();
@@ -659,13 +658,21 @@ function draw() {
         ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
       }
       const gradient = ctx.createLinearGradient(0, transY - transitionHeight, 0, transY);
-      gradient.addColorStop(0, '#000');
-      gradient.addColorStop(1, '#000');
+      gradient.addColorStop(0, 'rgba(0,0,0,1)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.globalCompositeOperation = 'destination-out';
       ctx.fillStyle = gradient;
       ctx.fillRect(0, transY - transitionHeight, canvas.width, transitionHeight);
       ctx.restore();
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.drawImage(prevBackgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
+      ctx.drawImage(prevBackgroundImg, 0, bgY, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'source-over';
+    } else {
+      if (backgroundImg.complete) {
+        ctx.drawImage(backgroundImg, 0, bgY - canvas.height, canvas.width, canvas.height);
+        ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
+      }
     }
     if (!transitionPlatform || transitionPlatform.y >= canvas.height) {
       prevBackgroundImg = null;
