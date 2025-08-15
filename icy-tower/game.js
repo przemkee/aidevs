@@ -162,7 +162,6 @@ spinBtn.addEventListener('click', () => {
   } else if (wheelSpun && !spinning) {
     wheelOverlay.style.display = 'none';
     paused = false;
-    clearWidePlatform();
   }
 });
 
@@ -312,7 +311,6 @@ document.addEventListener('keydown', e => {
     arcadeBtn.click();
   } else if (paused && e.code === 'Space') {
     paused = false;
-    clearWidePlatform();
   }
 });
 
@@ -332,13 +330,6 @@ let autoJumpTimer = 0;
 const autoJumpInterval = 30;
 let paused = false;
 let widePlatform = null;
-
-function clearWidePlatform() {
-  if (widePlatform) {
-    // long step persists; only drop reference
-    widePlatform = null;
-  }
-}
 function initGame(diff) {
   basePlatformWidth = diff.platformWidth;
   platformWidth = basePlatformWidth * (1 + 0.25 * blueCount);
@@ -668,8 +659,8 @@ function draw() {
         ctx.drawImage(backgroundImg, 0, bgY, canvas.width, canvas.height);
       }
       const gradient = ctx.createLinearGradient(0, transY - transitionHeight, 0, transY);
-      gradient.addColorStop(0, 'rgba(0,0,0,0)');
-      gradient.addColorStop(1, 'rgba(0,0,0,1)');
+      gradient.addColorStop(0, '#000');
+      gradient.addColorStop(1, '#000');
       ctx.globalCompositeOperation = 'destination-out';
       ctx.fillStyle = gradient;
       ctx.fillRect(0, transY - transitionHeight, canvas.width, transitionHeight);
