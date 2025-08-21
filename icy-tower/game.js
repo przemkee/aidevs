@@ -44,6 +44,8 @@ const buySlotItem = document.getElementById('buySlotItem');
 const ringDisplay = document.getElementById('ringDisplay');
 const shopRingDisplay = document.getElementById('shopRingDisplay');
 const shopMessage = document.getElementById('shopMessage');
+const refundBtn = document.getElementById('refundBtn');
+const resetGameBtn = document.getElementById('resetGameBtn');
 const savedRings = parseInt(localStorage.getItem('ringCount')) || 0;
 let ringCount = savedRings;
 let wheelSpun = false;
@@ -60,9 +62,19 @@ function createBoosterSlot() {
   skills.push('');
 }
 
+function removeExtraSlots() {
+  while (boosterSlots.length > 3) {
+    const slot = boosterSlots.pop();
+    boosterFrames.removeChild(slot);
+    skills.pop();
+  }
+}
+
 for (let i = 0; i < extraSkillSlots; i++) {
   createBoosterSlot();
 }
+
+updateShopItem();
 
 let nextSkillIndex = 0;
 let redCount = 0, yellowCount = 0, greenCount = 0, blueCount = 0;
@@ -112,6 +124,35 @@ function showShopMessage(msg) {
   setTimeout(() => {
     shopMessage.style.display = 'none';
   }, 5000);
+}
+
+function updateShopItem() {
+  if (!buySlotItem) return;
+  if (extraSkillSlots > 0) {
+    buySlotItem.classList.add('purchased');
+  } else {
+    buySlotItem.classList.remove('purchased');
+  }
+}
+
+function refundPurchases() {
+  ringCount += extraSkillSlots * 50;
+  extraSkillSlots = 0;
+  localStorage.setItem('ringCount', ringCount);
+  localStorage.setItem('extraSkillSlots', extraSkillSlots);
+  removeExtraSlots();
+  updateRingDisplay();
+  updateShopItem();
+}
+
+function resetGame() {
+  ringCount = 0;
+  extraSkillSlots = 0;
+  localStorage.setItem('ringCount', ringCount);
+  localStorage.setItem('extraSkillSlots', extraSkillSlots);
+  removeExtraSlots();
+  updateRingDisplay();
+  updateShopItem();
 }
 
 updateRingDisplay();
@@ -272,15 +313,32 @@ shopBackBtn.addEventListener('click', () => {
   updateRingDisplay();
 });
 
+if (refundBtn) {
+  refundBtn.addEventListener('click', () => {
+    refundPurchases();
+  });
+}
+
+if (resetGameBtn) {
+  resetGameBtn.addEventListener('click', () => {
+    resetGame();
+  });
+}
+
 if (buySlotItem) {
   buySlotItem.addEventListener('click', () => {
+    if (extraSkillSlots > 0) {
+      showShopMessage('Przedmiot już zakupiony');
+      return;
+    }
     if (ringCount >= 50) {
       ringCount -= 50;
       localStorage.setItem('ringCount', ringCount);
       updateRingDisplay();
       createBoosterSlot();
-      extraSkillSlots++;
+      extraSkillSlots = 1;
       localStorage.setItem('extraSkillSlots', extraSkillSlots);
+      updateShopItem();
     } else {
       showShopMessage('Brak środków!');
       updateRingDisplay();
