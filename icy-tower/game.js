@@ -43,6 +43,7 @@ const shopBackBtn = document.getElementById('shopBackBtn');
 const buySlotItem = document.getElementById('buySlotItem');
 const ringDisplay = document.getElementById('ringDisplay');
 const shopRingDisplay = document.getElementById('shopRingDisplay');
+const shopMessage = document.getElementById('shopMessage');
 const savedRings = parseInt(localStorage.getItem('ringCount')) || 0;
 let ringCount = savedRings;
 let wheelSpun = false;
@@ -102,6 +103,15 @@ toggleMusic.addEventListener('change', () => {
 function updateRingDisplay() {
   if (ringDisplay) ringDisplay.textContent = `Obręcze: ${ringCount}`;
   if (shopRingDisplay) shopRingDisplay.textContent = `Obręcze: ${ringCount}`;
+}
+
+function showShopMessage(msg) {
+  if (!shopMessage) return;
+  shopMessage.textContent = msg;
+  shopMessage.style.display = 'block';
+  setTimeout(() => {
+    shopMessage.style.display = 'none';
+  }, 5000);
 }
 
 updateRingDisplay();
@@ -271,6 +281,9 @@ if (buySlotItem) {
       createBoosterSlot();
       extraSkillSlots++;
       localStorage.setItem('extraSkillSlots', extraSkillSlots);
+    } else {
+      showShopMessage('Brak środków!');
+      updateRingDisplay();
     }
   });
 }
