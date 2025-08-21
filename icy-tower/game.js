@@ -46,6 +46,19 @@ const shopRingDisplay = document.getElementById('shopRingDisplay');
 const shopMessage = document.getElementById('shopMessage');
 const refundBtn = document.getElementById('refundBtn');
 const resetGameBtn = document.getElementById('resetGameBtn');
+const characterItems = document.querySelectorAll('.character-item');
+let purchasedCharacters;
+try {
+  purchasedCharacters = JSON.parse(localStorage.getItem('purchasedCharacters')) || ['character.png'];
+} catch (e) {
+  purchasedCharacters = ['character.png'];
+}
+let selectedCharacter = localStorage.getItem('selectedCharacter') || 'character.png';
+characterItems.forEach(item => {
+  if (purchasedCharacters.includes(item.dataset.character)) {
+    item.classList.add('owned');
+  }
+});
 const savedRings = parseInt(localStorage.getItem('ringCount')) || 0;
 let ringCount = savedRings;
 let wheelSpun = false;
@@ -137,22 +150,45 @@ function updateShopItem() {
 
 function refundPurchases() {
   ringCount += extraSkillSlots * 50;
+  ringCount += (purchasedCharacters.length - 1) * 50;
   extraSkillSlots = 0;
+  purchasedCharacters = ['character.png'];
+  selectedCharacter = 'character.png';
   localStorage.setItem('ringCount', ringCount);
   localStorage.setItem('extraSkillSlots', extraSkillSlots);
+  localStorage.setItem('purchasedCharacters', JSON.stringify(purchasedCharacters));
+  localStorage.setItem('selectedCharacter', selectedCharacter);
   removeExtraSlots();
+  characterItems.forEach(item => {
+    item.classList.remove('owned');
+    if (item.dataset.character === 'character.png') {
+      item.classList.add('owned');
+    }
+  });
   updateRingDisplay();
   updateShopItem();
+  updateCharacterImage();
 }
 
 function resetGame() {
   ringCount = 0;
   extraSkillSlots = 0;
+  purchasedCharacters = ['character.png'];
+  selectedCharacter = 'character.png';
   localStorage.setItem('ringCount', ringCount);
   localStorage.setItem('extraSkillSlots', extraSkillSlots);
+  localStorage.setItem('purchasedCharacters', JSON.stringify(purchasedCharacters));
+  localStorage.setItem('selectedCharacter', selectedCharacter);
   removeExtraSlots();
+  characterItems.forEach(item => {
+    item.classList.remove('owned');
+    if (item.dataset.character === 'character.png') {
+      item.classList.add('owned');
+    }
+  });
   updateRingDisplay();
   updateShopItem();
+  updateCharacterImage();
 }
 
 updateRingDisplay();
@@ -346,6 +382,33 @@ if (buySlotItem) {
   });
 }
 
+if (characterItems.length) {
+  characterItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const char = item.dataset.character;
+      if (purchasedCharacters.includes(char)) {
+        selectedCharacter = char;
+        localStorage.setItem('selectedCharacter', char);
+        updateCharacterImage();
+        return;
+      }
+      if (ringCount >= 50) {
+        ringCount -= 50;
+        purchasedCharacters.push(char);
+        localStorage.setItem('ringCount', ringCount);
+        localStorage.setItem('purchasedCharacters', JSON.stringify(purchasedCharacters));
+        selectedCharacter = char;
+        localStorage.setItem('selectedCharacter', char);
+        item.classList.add('owned');
+        updateRingDisplay();
+        updateCharacterImage();
+      } else {
+        showShopMessage('Brak środków!');
+      }
+    });
+  });
+}
+
 let backgroundImg = new Image();
 let prevBackgroundImg = null;
 let backgroundImages = [];
@@ -377,7 +440,11 @@ function nextBackground(plat) {
 const stepImg = new Image();
 stepImg.src = 'assets/step.jpg';
 const characterImg = new Image();
-characterImg.src = 'assets/character.png';
+characterImg.src = `assets/${selectedCharacter}`;
+
+function updateCharacterImage() {
+  characterImg.src = `assets/${selectedCharacter}`;
+}
 
 const difficulties = {
   easy: { platformWidth: 90, speed: 1.5 },
