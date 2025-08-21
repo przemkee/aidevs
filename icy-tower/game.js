@@ -40,14 +40,29 @@ const wheelCtx = wheelCanvas.getContext('2d');
 const shopBtn = document.getElementById('shopBtn');
 const shopMenu = document.getElementById('shopMenu');
 const shopBackBtn = document.getElementById('shopBackBtn');
+const buySlotItem = document.getElementById('buySlotItem');
 const ringDisplay = document.getElementById('ringDisplay');
 const shopRingDisplay = document.getElementById('shopRingDisplay');
 const savedRings = parseInt(localStorage.getItem('ringCount')) || 0;
 let ringCount = savedRings;
 let wheelSpun = false;
 let spinning = false;
-const boosterSlots = document.querySelectorAll('.booster-frame');
+let boosterSlots = Array.from(document.querySelectorAll('.booster-frame'));
 let skills = Array(boosterSlots.length).fill('');
+let extraSkillSlots = parseInt(localStorage.getItem('extraSkillSlots')) || 0;
+
+function createBoosterSlot() {
+  const slot = document.createElement('div');
+  slot.classList.add('booster-frame');
+  boosterFrames.appendChild(slot);
+  boosterSlots.push(slot);
+  skills.push('');
+}
+
+for (let i = 0; i < extraSkillSlots; i++) {
+  createBoosterSlot();
+}
+
 let nextSkillIndex = 0;
 let redCount = 0, yellowCount = 0, greenCount = 0, blueCount = 0;
 const wheelColors = ['red', 'yellow', 'green', 'blue', 'red', 'yellow', 'green', 'blue'];
@@ -246,6 +261,19 @@ shopBackBtn.addEventListener('click', () => {
   menu.style.display = 'block';
   updateRingDisplay();
 });
+
+if (buySlotItem) {
+  buySlotItem.addEventListener('click', () => {
+    if (ringCount >= 50) {
+      ringCount -= 50;
+      localStorage.setItem('ringCount', ringCount);
+      updateRingDisplay();
+      createBoosterSlot();
+      extraSkillSlots++;
+      localStorage.setItem('extraSkillSlots', extraSkillSlots);
+    }
+  });
+}
 
 let backgroundImg = new Image();
 let prevBackgroundImg = null;
