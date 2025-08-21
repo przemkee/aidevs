@@ -74,6 +74,31 @@ body {
   color: #000;
 }
 
+.shop-item.purchased {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.shop-item.purchased::before,
+.shop-item.purchased::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background: red;
+}
+
+.shop-item.purchased::before {
+  transform: rotate(45deg);
+}
+
+.shop-item.purchased::after {
+  transform: rotate(-45deg);
+}
+
 .shop-item .ring-icon {
   width: 30px;
   height: 30px;
@@ -91,6 +116,11 @@ body {
   color: red;
   margin-top: 10px;
   display: none;
+}
+
+#settingsMenu .left-align {
+  margin-left: 0;
+  margin-right: auto;
 }
 
 #logo {
