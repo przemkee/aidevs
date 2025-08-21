@@ -42,15 +42,12 @@ const shopMenu = document.getElementById('shopMenu');
 const shopBackBtn = document.getElementById('shopBackBtn');
 const ringDisplay = document.getElementById('ringDisplay');
 const shopRingDisplay = document.getElementById('shopRingDisplay');
-const buySlotBtn = document.getElementById('buySlotBtn');
 const savedRings = parseInt(localStorage.getItem('ringCount')) || 0;
 let ringCount = savedRings;
-let extraSlotPurchased = localStorage.getItem('extraSlotPurchased') === 'true';
-const SLOT_PRICE = 50;
 let wheelSpun = false;
 let spinning = false;
-let boosterSlots;
-let skills = [];
+const boosterSlots = document.querySelectorAll('.booster-frame');
+let skills = Array(boosterSlots.length).fill('');
 let nextSkillIndex = 0;
 let redCount = 0, yellowCount = 0, greenCount = 0, blueCount = 0;
 const wheelColors = ['red', 'yellow', 'green', 'blue', 'red', 'yellow', 'green', 'blue'];
@@ -90,17 +87,6 @@ toggleMusic.addEventListener('change', () => {
 function updateRingDisplay() {
   if (ringDisplay) ringDisplay.textContent = `Obręcze: ${ringCount}`;
   if (shopRingDisplay) shopRingDisplay.textContent = `Obręcze: ${ringCount}`;
-}
-
-function initBoosterSlots() {
-  const count = extraSlotPurchased ? 4 : 3;
-  boosterFrames.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'booster-frame';
-    boosterFrames.appendChild(slot);
-  }
-  boosterSlots = boosterFrames.querySelectorAll('.booster-frame');
 }
 
 updateRingDisplay();
@@ -238,9 +224,6 @@ function updateSkillEffects() {
   }
 }
 
-initBoosterSlots();
-resetSkills();
-
 settingsBtn.addEventListener('click', () => {
   menu.style.display = 'none';
   settingsMenu.style.display = 'block';
@@ -263,28 +246,6 @@ shopBackBtn.addEventListener('click', () => {
   menu.style.display = 'block';
   updateRingDisplay();
 });
-
-if (buySlotBtn && extraSlotPurchased) {
-  buySlotBtn.disabled = true;
-  buySlotBtn.textContent = 'Kupiono';
-}
-
-if (buySlotBtn) {
-  buySlotBtn.addEventListener('click', () => {
-    if (extraSlotPurchased) return;
-    if (ringCount >= SLOT_PRICE) {
-      ringCount -= SLOT_PRICE;
-      localStorage.setItem('ringCount', ringCount);
-      extraSlotPurchased = true;
-      localStorage.setItem('extraSlotPurchased', 'true');
-      buySlotBtn.disabled = true;
-      buySlotBtn.textContent = 'Kupiono';
-      updateRingDisplay();
-      initBoosterSlots();
-      resetSkills();
-    }
-  });
-}
 
 let backgroundImg = new Image();
 let prevBackgroundImg = null;
