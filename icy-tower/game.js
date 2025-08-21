@@ -444,7 +444,15 @@ characterImg.src = `assets/${selectedCharacter}`;
 
 function updateCharacterImage() {
   characterImg.src = `assets/${selectedCharacter}`;
+  characterItems.forEach(item => {
+    if (item.dataset.character === selectedCharacter) {
+      item.classList.add('selected');
+    } else {
+      item.classList.remove('selected');
+    }
+  });
 }
+updateCharacterImage();
 
 const difficulties = {
   easy: { platformWidth: 90, speed: 1.5 },

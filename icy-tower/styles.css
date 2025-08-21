@@ -148,11 +148,15 @@ body {
 
 .character-price {
   font-size: 14px;
-  color: #000;
+  color: #fff;
 }
 
 .character-item.owned {
-  border-color: gold;
+  border-color: yellow;
+}
+
+.character-item.selected {
+  border-color: red;
 }
 
 #logo {
