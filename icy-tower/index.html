@@ -26,9 +26,11 @@
 
   <div id="mainMenu" class="menu"><!-- WALL-BOUNCE renamed from menu -->
     <img id="logo" src="assets/logo.png" alt="Logo" />
+    <div id="ringDisplay" class="ring-display">Obręcze: 0</div>
     <button id="arcadeBtn" class="menu-button">Arcade Mode</button>
     <button id="boosterBtn" class="menu-button">Booster Mode</button>
     <button id="settingsBtn" class="menu-button">Ustawienia</button>
+    <button id="shopBtn" class="menu-button">Shop</button>
   </div>
 
   <div id="settingsMenu" class="menu" style="display:none;">
@@ -56,6 +58,13 @@
       Muzyka
     </label>
     <button id="backBtn" class="menu-button">Wróć</button>
+  </div>
+
+  <div id="shopMenu" class="menu" style="display:none; position:relative;">
+    <h2>Sklep</h2>
+    <p>W przyszłości pojawią się tutaj przedmioty do kupienia.</p>
+    <div id="shopRingDisplay" class="ring-display"></div>
+    <button id="shopBackBtn" class="menu-button shop-back">Menu</button>
   </div>
 
   <div id="gameContainer" style="display:none;">
