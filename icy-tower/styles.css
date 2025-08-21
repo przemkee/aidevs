@@ -55,6 +55,22 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
+#ringDisplay,
+#shopRingDisplay,
+.ring-display {
+  margin-bottom: 10px;
+}
+
+#shopMenu {
+  position: relative;
+}
+
+.shop-back {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+}
+
 #logo {
   display: block;
   margin: 0 auto 20px;

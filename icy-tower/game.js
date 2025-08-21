@@ -37,6 +37,13 @@ const wheelOverlay = document.getElementById('wheelOverlay');
 const spinBtn = document.getElementById('spinBtn');
 const wheelCanvas = document.getElementById('spinWheel');
 const wheelCtx = wheelCanvas.getContext('2d');
+const shopBtn = document.getElementById('shopBtn');
+const shopMenu = document.getElementById('shopMenu');
+const shopBackBtn = document.getElementById('shopBackBtn');
+const ringDisplay = document.getElementById('ringDisplay');
+const shopRingDisplay = document.getElementById('shopRingDisplay');
+const savedRings = parseInt(localStorage.getItem('ringCount')) || 0;
+let ringCount = savedRings;
 let wheelSpun = false;
 let spinning = false;
 const boosterSlots = document.querySelectorAll('.booster-frame');
@@ -76,6 +83,13 @@ toggleMusic.addEventListener('change', () => {
     stopMusic();
   }
 });
+
+function updateRingDisplay() {
+  if (ringDisplay) ringDisplay.textContent = `Obręcze: ${ringCount}`;
+  if (shopRingDisplay) shopRingDisplay.textContent = `Obręcze: ${ringCount}`;
+}
+
+updateRingDisplay();
 
 // upbeat chiptune loop using Tone.js
 const synth = new Tone.MonoSynth({
@@ -218,6 +232,19 @@ settingsBtn.addEventListener('click', () => {
 backBtn.addEventListener('click', () => {
   settingsMenu.style.display = 'none';
   menu.style.display = 'block';
+  updateRingDisplay();
+});
+
+shopBtn.addEventListener('click', () => {
+  menu.style.display = 'none';
+  shopMenu.style.display = 'block';
+  updateRingDisplay();
+});
+
+shopBackBtn.addEventListener('click', () => {
+  shopMenu.style.display = 'none';
+  menu.style.display = 'block';
+  updateRingDisplay();
 });
 
 let backgroundImg = new Image();
@@ -586,6 +613,9 @@ function update(now) { // WALL-BOUNCE
       player.y + player.height > ring.y - ring.radius
     ) {
       rings.splice(i, 1);
+      ringCount++;
+      localStorage.setItem('ringCount', ringCount);
+      updateRingDisplay();
       score += Math.round(1000 * (1 + 0.25 * yellowCount));
       scoreDisplay.style.color = 'gold';
       setTimeout(() => (scoreDisplay.style.color = '#fff'), 1000);
@@ -779,6 +809,7 @@ newGameBtn.addEventListener('click', () => {
    boosterFrames.style.display = 'none';
   document.getElementById('nickname').value = '';
   saveScoreBtn.disabled = false;
+  updateRingDisplay();
 });
 
 function loop(now) { // WALL-BOUNCE
