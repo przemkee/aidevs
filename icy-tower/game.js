@@ -121,8 +121,26 @@ toggleMusic.addEventListener('change', () => {
     stopMusic();
   }
 });
-useNewUi.addEventListener('change', () => {
-  setNewUiEnabled(useNewUi.checked);
+useNewUi.addEventListener('change', async () => {
+  const enabled = useNewUi.checked;
+  setNewUiEnabled(enabled);
+  const root = document.getElementById('ui-root');
+  const mainMenu = document.getElementById('mainMenu');
+  const settingsMenu = document.getElementById('settingsMenu');
+  if (enabled) {
+    if (root) root.style.display = 'block';
+    if (mainMenu) mainMenu.style.display = 'none';
+    if (settingsMenu) settingsMenu.style.display = 'none';
+    const m = await import('../src/ui/bootstrapPreact');
+    m.mount();
+  } else {
+    if (root) {
+      root.style.display = 'none';
+      root.innerHTML = '';
+    }
+    if (settingsMenu) settingsMenu.style.display = 'none';
+    if (mainMenu) mainMenu.style.display = 'block';
+  }
 });
 
 export function setWallBounceEnabled(v) {
