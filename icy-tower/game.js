@@ -131,8 +131,20 @@ useNewUi.addEventListener('change', async () => {
     if (root) root.style.display = 'block';
     if (mainMenu) mainMenu.style.display = 'none';
     if (settingsMenu) settingsMenu.style.display = 'none';
-    const m = await import('../src/ui/bootstrapPreact');
-    m.mount();
+    try {
+      const m = await import('../src/ui/bootstrapPreact');
+      m.mount();
+    } catch (err) {
+      console.error(err);
+      if (mainMenu) mainMenu.style.display = 'block';
+      if (root) {
+        root.style.display = 'none';
+        root.innerHTML = '';
+      }
+      if (settingsMenu) settingsMenu.style.display = 'none';
+      useNewUi.checked = false;
+      setNewUiEnabled(false);
+    }
   } else {
     if (root) {
       root.style.display = 'none';
