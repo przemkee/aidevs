@@ -1,5 +1,5 @@
 import { startMusic, stopMusic } from './audio.js';
-import { load, save } from './store.js';
+import { load, save, isNewUiEnabled, setNewUiEnabled } from './store.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -94,8 +94,10 @@ const speedMinus = document.getElementById('speedMinus');
 const speedPlus = document.getElementById('speedPlus');
 const speedValue = document.getElementById('speedValue');
 const toggleMusic = document.getElementById('toggleMusic');
+const useNewUi = document.getElementById('useNewUi');
 toggleWallBounce.checked = game.settings.wallBounceEnabled;
 toggleMusic.checked = game.settings.musicEnabled;
+useNewUi.checked = isNewUiEnabled();
 function updateSpeedLabel() { speedValue.textContent = game.settings.speedMultiplier.toFixed(1) + 'x'; }
 updateSpeedLabel();
 toggleWallBounce.addEventListener('change', () => {
@@ -118,6 +120,9 @@ toggleMusic.addEventListener('change', () => {
   } else {
     stopMusic();
   }
+});
+useNewUi.addEventListener('change', () => {
+  setNewUiEnabled(useNewUi.checked);
 });
 
 function updateRingDisplay() {
