@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="../../icy-tower/styles.css" />
   </head>
   <body>
+    <div id="intro">
+      <img src="./assets/intro.gif" alt="Game intro" />
+    </div>
     <div id="scoreboard" style="display:none;">
       <h2>Scoreboard</h2>
       <pre id="scoreTable"></pre>
@@ -73,6 +76,14 @@
 
     <script>
       localStorage.setItem('newUi', 'true');
+    </script>
+    <script>
+      window.addEventListener('load', () => {
+        const intro = document.getElementById('intro');
+        if (intro) {
+          setTimeout(() => intro.remove(), 3000);
+        }
+      });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.min.js"></script>
     <script type="module" src="../../icy-tower/main.js"></script>
