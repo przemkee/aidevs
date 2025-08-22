@@ -1,0 +1,35 @@
+.menu-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.central {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.corners button {
+  position: absolute;
+}
+
+.corners .back {
+  top: 1rem;
+  left: 1rem;
+}
+
+.corners .settings {
+  top: 1rem;
+  right: 1rem;
+}
+
+.corners .manual {
+  bottom: 1rem;
+  right: 1rem;
+}
