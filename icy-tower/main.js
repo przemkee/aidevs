@@ -8,7 +8,7 @@ if (isNewUiEnabled()) {
   if (mainMenu) {
     mainMenu.style.display = 'none';
   }
-  import('../src/ui/bootstrapPreact')
+  import('../ui/assets/bootstrapPreact-w53xUFNM-KseoUffr.js')
     .then(m => m.mount())
     .catch(err => {
       console.error(err);

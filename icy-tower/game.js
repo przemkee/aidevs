@@ -132,7 +132,7 @@ useNewUi.addEventListener('change', async () => {
     if (mainMenu) mainMenu.style.display = 'none';
     if (settingsMenu) settingsMenu.style.display = 'none';
     try {
-      const m = await import('../src/ui/bootstrapPreact');
+      const m = await import('../ui/assets/bootstrapPreact-w53xUFNM-KseoUffr.js');
       m.mount();
     } catch (err) {
       console.error(err);
