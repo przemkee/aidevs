@@ -20,16 +20,21 @@
 }
 
 .corners .back {
-  top: 1rem;
+  bottom: 1rem;
   left: 1rem;
 }
 
 .corners .settings {
-  top: 1rem;
-  right: 1rem;
+  bottom: 1rem;
+  right: 5rem;
 }
 
 .corners .manual {
   bottom: 1rem;
   right: 1rem;
+}
+
+.central button {
+  font-size: 2rem;
+  padding: 1rem 2rem;
 }

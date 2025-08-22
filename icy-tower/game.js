@@ -125,6 +125,38 @@ useNewUi.addEventListener('change', () => {
   setNewUiEnabled(useNewUi.checked);
 });
 
+export function setWallBounceEnabled(v) {
+  game.settings.wallBounceEnabled = v;
+  save('wallBounceEnabled', game.settings.wallBounceEnabled);
+}
+
+export function getWallBounceEnabled() {
+  return game.settings.wallBounceEnabled;
+}
+
+export function setSpeedMultiplier(v) {
+  game.settings.speedMultiplier = Math.max(0.5, Math.min(3, v));
+  updateSpeedLabel();
+}
+
+export function getSpeedMultiplier() {
+  return game.settings.speedMultiplier;
+}
+
+export function setMusicEnabled(v) {
+  game.settings.musicEnabled = v;
+  save('musicEnabled', game.settings.musicEnabled);
+  if (game.settings.musicEnabled) {
+    startMusic();
+  } else {
+    stopMusic();
+  }
+}
+
+export function getMusicEnabled() {
+  return game.settings.musicEnabled;
+}
+
 function updateRingDisplay() {
   if (ringDisplay) ringDisplay.textContent = `Obręcze: ${ringCount}`;
   if (shopRingDisplay) shopRingDisplay.textContent = `Obręcze: ${ringCount}`;
