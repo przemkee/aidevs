@@ -1,3 +1,6 @@
+import { startMusic, stopMusic } from './audio.js';
+import { load, save } from './store.js';
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -7,13 +10,11 @@ const config = {
   wallSlideMaxDownSpeed: 120
 };
 
-const savedSetting = localStorage.getItem('wallBounceEnabled'); // WALL-BOUNCE
-const savedMusic = localStorage.getItem('musicEnabled');
 const game = { // WALL-BOUNCE
   settings: {
-    wallBounceEnabled: savedSetting !== null ? JSON.parse(savedSetting) : config.wallBounceEnabledDefault,
+    wallBounceEnabled: load('wallBounceEnabled', config.wallBounceEnabledDefault),
     speedMultiplier: 1,
-    musicEnabled: savedMusic !== null ? JSON.parse(savedMusic) : true,
+    musicEnabled: load('musicEnabled', true),
     continuousPlay: true
   }
 };
@@ -47,25 +48,19 @@ const shopMessage = document.getElementById('shopMessage');
 const refundBtn = document.getElementById('refundBtn');
 const resetGameBtn = document.getElementById('resetGameBtn');
 const characterItems = document.querySelectorAll('.character-item');
-let purchasedCharacters;
-try {
-  purchasedCharacters = JSON.parse(localStorage.getItem('purchasedCharacters')) || ['character.png'];
-} catch (e) {
-  purchasedCharacters = ['character.png'];
-}
-let selectedCharacter = localStorage.getItem('selectedCharacter') || 'character.png';
+let purchasedCharacters = load('purchasedCharacters', ['character.png']);
+let selectedCharacter = load('selectedCharacter', 'character.png');
 characterItems.forEach(item => {
   if (purchasedCharacters.includes(item.dataset.character)) {
     item.classList.add('owned');
   }
 });
-const savedRings = parseInt(localStorage.getItem('ringCount')) || 0;
-let ringCount = savedRings;
+let ringCount = load('ringCount', 0);
 let wheelSpun = false;
 let spinning = false;
 let boosterSlots = Array.from(document.querySelectorAll('.booster-frame'));
 let skills = Array(boosterSlots.length).fill('');
-let extraSkillSlots = parseInt(localStorage.getItem('extraSkillSlots')) || 0;
+let extraSkillSlots = load('extraSkillSlots', 0);
 
 function createBoosterSlot() {
   const slot = document.createElement('div');
@@ -105,7 +100,7 @@ function updateSpeedLabel() { speedValue.textContent = game.settings.speedMultip
 updateSpeedLabel();
 toggleWallBounce.addEventListener('change', () => {
   game.settings.wallBounceEnabled = toggleWallBounce.checked;
-  localStorage.setItem('wallBounceEnabled', game.settings.wallBounceEnabled);
+  save('wallBounceEnabled', game.settings.wallBounceEnabled);
 });
 speedMinus.addEventListener('click', () => {
   game.settings.speedMultiplier = Math.max(0.5, game.settings.speedMultiplier - 0.5);
@@ -117,7 +112,7 @@ speedPlus.addEventListener('click', () => {
 });
 toggleMusic.addEventListener('change', () => {
   game.settings.musicEnabled = toggleMusic.checked;
-  localStorage.setItem('musicEnabled', game.settings.musicEnabled);
+  save('musicEnabled', game.settings.musicEnabled);
   if (game.settings.musicEnabled) {
     startMusic();
   } else {
@@ -154,10 +149,10 @@ function refundPurchases() {
   extraSkillSlots = 0;
   purchasedCharacters = ['character.png'];
   selectedCharacter = 'character.png';
-  localStorage.setItem('ringCount', ringCount);
-  localStorage.setItem('extraSkillSlots', extraSkillSlots);
-  localStorage.setItem('purchasedCharacters', JSON.stringify(purchasedCharacters));
-  localStorage.setItem('selectedCharacter', selectedCharacter);
+  save('ringCount', ringCount);
+  save('extraSkillSlots', extraSkillSlots);
+  save('purchasedCharacters', purchasedCharacters);
+  save('selectedCharacter', selectedCharacter);
   removeExtraSlots();
   characterItems.forEach(item => {
     item.classList.remove('owned');
@@ -175,10 +170,10 @@ function resetGame() {
   extraSkillSlots = 0;
   purchasedCharacters = ['character.png'];
   selectedCharacter = 'character.png';
-  localStorage.setItem('ringCount', ringCount);
-  localStorage.setItem('extraSkillSlots', extraSkillSlots);
-  localStorage.setItem('purchasedCharacters', JSON.stringify(purchasedCharacters));
-  localStorage.setItem('selectedCharacter', selectedCharacter);
+  save('ringCount', ringCount);
+  save('extraSkillSlots', extraSkillSlots);
+  save('purchasedCharacters', purchasedCharacters);
+  save('selectedCharacter', selectedCharacter);
   removeExtraSlots();
   characterItems.forEach(item => {
     item.classList.remove('owned');
@@ -192,52 +187,6 @@ function resetGame() {
 }
 
 updateRingDisplay();
-
-// upbeat chiptune loop using Tone.js
-const synth = new Tone.MonoSynth({
-  oscillator: { type: 'sawtooth' },
-  envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.4 }
-}).toDestination();
-const bassSynth = new Tone.MonoSynth({
-  oscillator: { type: 'square' },
-  filter: { type: 'lowpass', frequency: 200 },
-  envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.8 }
-}).toDestination();
-const kick = new Tone.MembraneSynth().toDestination();
-
-Tone.Transport.bpm.value = 160;
-
-const melody = [
-  'C4', 'E4', 'G4', 'B4', 'C5', 'B4', 'G4', 'E4',
-  'D4', 'F4', 'A4', 'C5', 'D5', 'A4', 'F4', 'D4'
-];
-const bassline = ['C2', 'C2', 'G1', 'C2', 'B1', 'G1', 'C2', 'G1'];
-
-const sequence = new Tone.Sequence((time, note) => {
-  synth.triggerAttackRelease(note, '16n', time);
-}, melody, '16n');
-const bassSequence = new Tone.Sequence((time, note) => {
-  bassSynth.triggerAttackRelease(note, '8n', time);
-  kick.triggerAttackRelease('C2', '8n', time);
-}, bassline, '8n');
-
-sequence.loop = true;
-bassSequence.loop = true;
-Tone.Transport.loop = true;
-Tone.Transport.loopEnd = '90s'; // roughly 1.5 minutes
-
-function startMusic() {
-  Tone.start();
-  if (sequence.state !== 'started') {
-    sequence.start(0);
-    bassSequence.start(0);
-  }
-  Tone.Transport.start();
-}
-
-function stopMusic() {
-  Tone.Transport.stop();
-}
 
 // wheel drawing for booster mode pause
 function drawWheel() {
@@ -369,11 +318,11 @@ if (buySlotItem) {
     }
     if (ringCount >= 50) {
       ringCount -= 50;
-      localStorage.setItem('ringCount', ringCount);
+      save('ringCount', ringCount);
       updateRingDisplay();
       createBoosterSlot();
       extraSkillSlots = 1;
-      localStorage.setItem('extraSkillSlots', extraSkillSlots);
+      save('extraSkillSlots', extraSkillSlots);
       updateShopItem();
     } else {
       showShopMessage('Brak środków!');
@@ -388,17 +337,17 @@ if (characterItems.length) {
       const char = item.dataset.character;
       if (purchasedCharacters.includes(char)) {
         selectedCharacter = char;
-        localStorage.setItem('selectedCharacter', char);
+        save('selectedCharacter', char);
         updateCharacterImage();
         return;
       }
       if (ringCount >= 50) {
         ringCount -= 50;
         purchasedCharacters.push(char);
-        localStorage.setItem('ringCount', ringCount);
-        localStorage.setItem('purchasedCharacters', JSON.stringify(purchasedCharacters));
+        save('ringCount', ringCount);
+        save('purchasedCharacters', purchasedCharacters);
         selectedCharacter = char;
-        localStorage.setItem('selectedCharacter', char);
+        save('selectedCharacter', char);
         item.classList.add('owned');
         updateRingDisplay();
         updateCharacterImage();
@@ -465,12 +414,7 @@ const borderWidth = 2;
 const ringRadius = 15;
 
 function updateScoreboard() {
-  let scores;
-  try {
-    scores = JSON.parse(localStorage.getItem('scores')) || [];
-  } catch (e) {
-    scores = [];
-  }
+  const scores = load('scores', []);
   scoreTable.textContent = scores
     .map((s, i) => `${i + 1}. ${s.name}: ${s.score}`)
     .join('\n');
@@ -788,7 +732,7 @@ function update(now) { // WALL-BOUNCE
     ) {
       rings.splice(i, 1);
       ringCount++;
-      localStorage.setItem('ringCount', ringCount);
+      save('ringCount', ringCount);
       updateRingDisplay();
       score += Math.round(1000 * (1 + 0.25 * yellowCount));
       scoreDisplay.style.color = 'gold';
@@ -956,15 +900,10 @@ saveScoreBtn.addEventListener('click', () => {
   const nicknameInput = document.getElementById('nickname');
   const scoreTable = document.getElementById('scoreTable');
   const nick = nicknameInput.value.trim() || 'Anon';
-  let scores;
-  try {
-    scores = JSON.parse(localStorage.getItem('scores')) || [];
-  } catch (e) {
-    scores = [];
-  }
+  const scores = load('scores', []);
   scores.push({ name: nick, score });
   scores.sort((a, b) => b.score - a.score);
-  localStorage.setItem('scores', JSON.stringify(scores));
+  save('scores', scores);
   updateScoreboard();
   const blob = new Blob([scoreTable.textContent], { type: 'text/plain' });
   const a = document.createElement('a');
