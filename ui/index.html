@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>UI Preview</title>
+    <script type="module" crossorigin src="/assets/index-CB3RALtC.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BoclnJ2a.css">
+  </head>
+  <body>
+    <div id="scoreboard" style="display:none;">
+      <h2>Scoreboard</h2>
+      <pre id="scoreTable"></pre>
+    </div>
+
+    <div id="mainMenu" class="menu" style="display:none;">
+      <div id="ringDisplay" class="ring-display">Rings: 0</div>
+      <button id="arcadeBtn" class="menu-button">Arcade Mode</button>
+      <button id="boosterBtn" class="menu-button">Booster Mode</button>
+      <button id="settingsBtn" class="menu-button">Settings</button>
+      <button id="shopBtn" class="menu-button">Shop</button>
+    </div>
+
+    <div id="settingsMenu" class="menu" style="display:none;">
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <label><input type="checkbox" id="toggleWallBounce" />Wall bounce</label>
+      <div id="speedControl">
+        <button id="speedMinus">-</button>
+        <span id="speedValue">1x</span>
+        <button id="speedPlus">+</button>
+      </div>
+      <label><input type="checkbox" id="toggleMusic" checked />Music</label>
+      <label><input type="checkbox" id="useNewUi" checked />Use new UI</label>
+      <button id="resetGameBtn" class="menu-button">Reset game</button>
+      <button id="refundBtn" class="menu-button">Refund</button>
+      <button id="backBtn" class="menu-button">Back</button>
+    </div>
+
+    <div id="shopMenu" class="menu" style="display:none;">
+      <div id="shopRingDisplay" class="ring-display"></div>
+      <div id="buySlotItem"><button>Extra slot</button></div>
+      <div id="shopMessage"></div>
+      <button id="shopBackBtn" class="menu-button">Back</button>
+    </div>
+
+    <div id="gameContainer" style="display:none;">
+      <canvas id="game"></canvas>
+      <div id="currentScore">0</div>
+      <div id="comboDisplay"></div>
+      <div id="boosterFrames" style="display:none;">
+        <div class="booster-frame"></div>
+        <div class="booster-frame"></div>
+        <div class="booster-frame"></div>
+      </div>
+    </div>
+
+    <div id="wheelOverlay" style="display:none;">
+      <div id="wheelPointer"></div>
+      <canvas id="spinWheel" width="200" height="200"></canvas>
+      <button id="spinBtn">Spin!</button>
+    </div>
+
+    <div id="gameOver" style="display:none;">
+      <p id="finalScore"></p>
+      <input id="nickname" placeholder="Your nick" />
+      <button id="saveScoreBtn">Save score</button>
+      <button id="newGameBtn">New game</button>
+    </div>
+
+    <div id="ui-root"></div>
+
+    <script>
+      localStorage.setItem('newUi', 'true');
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.min.js"></script>
+  </body>
+</html>
