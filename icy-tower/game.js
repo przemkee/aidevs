@@ -443,15 +443,19 @@ function startGame() {
   requestAnimationFrame(loop);
 }
 
-arcadeBtn.addEventListener('click', () => {
+export function startArcade() {
   game.settings.continuousPlay = true;
   startGame();
-});
+}
 
-boosterBtn.addEventListener('click', () => {
+export function startBooster() {
   game.settings.continuousPlay = false;
   startGame();
-});
+}
+
+arcadeBtn.addEventListener('click', startArcade);
+
+boosterBtn.addEventListener('click', startBooster);
 
 document.addEventListener('keydown', e => {
   if (wheelOverlay.style.display !== 'none' && e.code === 'Space') {
